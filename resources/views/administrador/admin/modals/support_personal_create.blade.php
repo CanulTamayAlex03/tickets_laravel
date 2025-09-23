@@ -1,0 +1,27 @@
+<div class="modal fade" id="addPersonalModal" tabindex="-1" aria-labelledby="addPersonalModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ route('admin.soporte.store') }}" method="POST">
+                @csrf
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="addPersonalModalLabel">Agregar Personal de Soporte</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lastnames" class="form-label">Apellidos</label>
+                        <input type="text" class="form-control" id="lastnames" name="lastnames" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
