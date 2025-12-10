@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Building;
-use App\Models\UserType;
+use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -18,34 +18,11 @@ class UserController extends Controller
         $this->middleware(['auth', 'permission:editar usuarios'])->only(['update']);
     }
 
-    private function getRoleByUserType($userTypeId)
-    {
-        $defaultRoles = [
-            1 => 'user',
-            2 => 'superadmin',
-            3 => 'informatica',
-            4 => 'admin',
-            5 => 'ati'
-        ];
-
-        if (isset($defaultRoles[$userTypeId])) {
-            return $defaultRoles[$userTypeId];
-        }
-
-        $userType = UserType::with('role')->find($userTypeId);
-
-        if ($userType && $userType->role) {
-            return $userType->role->name;
-        }
-
-        return 'user';
-    }
-
     public function index(Request $request)
     {
         $search = $request->input('search');
 
-        $users = User::with(['userType', 'buildings'])
+        $users = User::with(['roles', 'buildings'])
             ->when($search, function ($query, $search) {
                 return $query->where('email', 'like', "%{$search}%");
             })
@@ -54,9 +31,9 @@ class UserController extends Controller
             ->paginate(20);
 
         $buildings = Building::all();
-        $userTypes = UserType::all();
+        $roles = Role::all();
 
-        return view('administrador.admin.usuarios', compact('users', 'buildings', 'userTypes'));
+        return view('administrador.admin.usuarios', compact('users', 'buildings', 'roles'));
     }
 
     public function store(Request $request)
@@ -64,7 +41,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
-            'user_type_id' => 'required|exists:user_types,id',
+            'role_id' => 'required|exists:roles,id',
             'buildings' => 'sometimes|array',
             'buildings.*' => 'exists:buildings,id',
             'estatus' => 'sometimes|boolean'
@@ -80,13 +57,11 @@ class UserController extends Controller
         $user = User::create([
             'email' => $request->email,
             'encrypted_password' => Hash::make($request->password),
-            'user_type_id' => $request->user_type_id,
             'estatus' => $request->estatus ?? 1
         ]);
 
-        // 🔹 asignar rol según el user_type
-        $role = $this->getRoleByUserType((int) $request->user_type_id);
-        $user->syncRoles([$role]);
+        $role = Role::find($request->role_id);
+        $user->assignRole($role);
 
         if ($request->has('buildings')) {
             $user->buildings()->sync($request->buildings);
@@ -97,12 +72,13 @@ class UserController extends Controller
 
     public function edit($id)
     {
-        $user = User::with('buildings')->findOrFail($id);
+        $user = User::with(['buildings', 'roles'])->findOrFail($id);
         $buildings = Building::all();
-        $userTypes = UserType::all();
+        $roles = Role::all();
         $userBuildings = $user->buildings->pluck('id')->toArray();
+        $userRole = $user->roles->first()->id ?? null;
 
-        return view('administrador.admin.usuarios-edit', compact('user', 'buildings', 'userTypes', 'userBuildings'));
+        return view('administrador.admin.usuarios-edit', compact('user', 'buildings', 'roles', 'userBuildings', 'userRole'));
     }
 
     public function update(Request $request, $id)
@@ -110,7 +86,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:users,email,' . $id,
             'password' => 'nullable|min:6',
-            'user_type_id' => 'required|exists:user_types,id',
+            'role_id' => 'required|exists:roles,id',
             'buildings' => 'sometimes|array',
             'buildings.*' => 'exists:buildings,id',
             'estatus' => 'sometimes|boolean'
@@ -127,7 +103,6 @@ class UserController extends Controller
 
         $data = [
             'email' => $request->email,
-            'user_type_id' => $request->user_type_id,
             'estatus' => $request->estatus ?? $user->estatus
         ];
 
@@ -137,11 +112,9 @@ class UserController extends Controller
 
         $user->update($data);
 
-        // 🔹 sincronizar rol en model_has_roles
-        $role = $this->getRoleByUserType((int) $request->user_type_id);
-        $user->syncRoles([$role]);
+        $role = Role::find($request->role_id);
+        $user->syncRoles([$role->name]);
 
-        // 🔹 edificios
         $user->buildings()->sync($request->buildings ?? []);
 
         return redirect()->route('admin.usuarios')

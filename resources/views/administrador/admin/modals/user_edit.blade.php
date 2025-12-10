@@ -19,11 +19,11 @@
                         <small class="text-muted">Dejar en blanco para no cambiar</small>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_user_type_id" class="form-label">Tipo de Usuario</label>
-                        <select class="form-select" id="edit_user_type_id" name="user_type_id" required>
-                            <option value="">Seleccionar tipo</option>
-                            @foreach($userTypes as $type)
-                            <option value="{{ $type->id }}">{{ $type->description }}</option>
+                        <label for="edit_role_id" class="form-label">Rol</label> <!-- Cambiado aquí -->
+                        <select class="form-select" id="edit_role_id" name="role_id" required> <!-- Cambiado aquí -->
+                            <option value="">Seleccionar rol</option>
+                            @foreach($roles as $role) <!-- Cambiado aquí -->
+                            <option value="{{ $role->id }}">{{ $role->name }}</option> <!-- Cambiado aquí -->
                             @endforeach
                         </select>
                     </div>

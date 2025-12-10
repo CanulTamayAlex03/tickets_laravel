@@ -8,16 +8,15 @@ use Illuminate\Support\Facades\Validator;
 
 class SupportPersonalController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'permission:ver personal soporte'])->only(['index']);
+        $this->middleware(['auth', 'permission:crear personal soporte'])->only(['store']);
+        $this->middleware(['auth', 'permission:editar personal soporte'])->only(['edit', 'update']);
+    }
+
     public function index(Request $request)
     {
-        if (!auth()->check()) {
-            return redirect()->route('administrador.login');
-        }
-
-        if (auth()->user()->user_type_id != 2) {
-            abort(403, 'No tienes permiso para acceder a esta sección');
-        }
-
         $search = $request->input('search');
 
         $supportPersonals = SupportPersonal::when($search, function ($query, $search) {

@@ -20,7 +20,6 @@ class User extends Authenticatable
     protected $fillable = [
         'email',
         'encrypted_password',
-        'user_type_id',
         'estatus'
     ];
 
@@ -33,11 +32,6 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function userType()
-    {
-        return $this->belongsTo(UserType::class, 'user_type_id');
-    }
-
     public function buildings()
     {
         return $this->belongsToMany(Building::class, 'users_has_buildings', 'user_id', 'building_id')
@@ -47,5 +41,15 @@ class User extends Authenticatable
     public function getAuthPassword()
     {
         return $this->encrypted_password;
+    }
+
+    public function getRolPrincipalAttribute()
+    {
+        return $this->roles->first()->name ?? 'Sin rol';
+    }
+
+    public function tieneRol($rol)
+    {
+        return $this->hasRole($rol);
     }
 }

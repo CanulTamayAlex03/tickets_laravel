@@ -7,39 +7,58 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class PermissionManagerController extends Controller
 {
     public function __construct()
     {
-        // Solo superadmin puede acceder a estas rutas
         $this->middleware(['auth', 'role:superadmin']);
     }
 
-    /* Mostrar el gestor de permisos */
     public function index()
     {
         $roles = Role::with('permissions')->get();
         $permissions = Permission::all();
         $users = User::with('roles')->get();
 
-        return view('admin.permisos.manager', compact('roles', 'permissions', 'users'));
+        return view('administrador.admin.permisos', compact('roles', 'permissions', 'users'));
     }
 
-    /* Actualizar permisos de un rol */
-    public function updateRolePermissions(Request $request, Role $role)
+    public function updateRolePermissions(Request $request, $roleId)
     {
-        $request->validate([
-            'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,id'
-        ]);
+        try {
+            $role = Role::findOrFail($roleId);
 
-        $role->syncPermissions($request->permissions ?? []);
+            Log::info('Actualizando permisos para rol ID: ' . $roleId);
+            Log::info('Datos recibidos:', $request->all());
 
-        return redirect()->back()->with('success', 'Permisos actualizados para el rol ' . $role->name);
+            $permissions = $request->input('permissions', []);
+
+            $permissionIds = array_map('intval', $permissions);
+
+            $permissionNames = Permission::whereIn('id', $permissionIds)
+                ->pluck('name')
+                ->toArray();
+
+            $role->syncPermissions($permissionNames);
+
+            Log::info('Permisos sincronizados: ' . implode(', ', $permissionNames));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permisos actualizados correctamente'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error crítico: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error del servidor: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
-    /* Actualizar roles de un usuario */
     public function updateUserRoles(Request $request, User $user)
     {
         $request->validate([
@@ -52,7 +71,6 @@ class PermissionManagerController extends Controller
         return redirect()->back()->with('success', 'Roles actualizados para el usuario ' . $user->email);
     }
 
-    /* Crear nuevo permiso */
     public function createPermission(Request $request)
     {
         $request->validate([
@@ -64,19 +82,22 @@ class PermissionManagerController extends Controller
         return redirect()->back()->with('success', 'Permiso creado correctamente');
     }
 
-    /* Crear nuevo rol */
     public function createRole(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|unique:roles,name'
+            'name' => 'required|string|unique:roles,name',
+            'permissions' => 'nullable|array',
         ]);
 
-        Role::create(['name' => $request->name]);
+        $role = Role::create(['name' => $request->name, 'guard_name' => 'web']);
 
-        return redirect()->back()->with('success', 'Rol creado correctamente');
+        if ($request->has('permissions')) {
+            $role->syncPermissions($request->permissions);
+        }
+
+        return redirect()->route('admin.permisos.manager')->with('success', 'Rol creado correctamente');
     }
 
-    /* Eliminar un permiso */
     public function deletePermission(Permission $permission)
     {
         $permission->delete();
@@ -84,11 +105,26 @@ class PermissionManagerController extends Controller
         return redirect()->back()->with('success', 'Permiso eliminado correctamente');
     }
 
-    /* Eliminar un rol */
     public function deleteRole(Role $role)
     {
         $role->delete();
 
         return redirect()->back()->with('success', 'Rol eliminado correctamente');
+    }
+
+    public function editAjax(Role $role)
+    {
+        try {
+            $permisos = Permission::all();
+
+            return response()->json([
+                'rol' => $role->load('permissions'),
+                'permisos' => $permisos
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al cargar los datos: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

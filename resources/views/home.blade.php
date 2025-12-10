@@ -132,36 +132,43 @@
 <script src="{{ asset('js/es.js') }}"></script>
 
 <script>
-    $(document).ready(function() {
-        // Configuración de Select2
-        $('.form-select-sm').select2({
-            placeholder: function() {
-                return $(this).data('placeholder');
-            },
-            width: '100%',
-            language: 'es',
-            minimumResultsForSearch: 3
-        });
+$(document).ready(function() {
+    $('.form-select-sm').select2({
+        placeholder: function() {
+            return $(this).data('placeholder');
+        },
+        width: '100%',
+        language: 'es',
+        minimumResultsForSearch: 3
+    });
 
-        // Funcionalidad de validación de internet
-        const internetValidationBtn = document.getElementById('internetValidationBtn');
+    $(document).on('select2:open', '.form-select-sm', function(e) {
+        setTimeout(function() {
+            document.querySelector('.select2-container--open .select2-search__field').focus();
+        }, 10);
+    });
+
+    const internetValidationBtn = document.getElementById('internetValidationBtn');
         const validationOptions = document.getElementById('validationOptions');
+        const optionLinks = validationOptions.querySelectorAll('a');
 
         internetValidationBtn.addEventListener('click', function() {
             validationOptions.classList.toggle('show');
         });
-
+        optionLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                validationOptions.classList.remove('show');
+            });
+        });
         document.addEventListener('click', function(event) {
             if (!internetValidationBtn.contains(event.target) && !validationOptions.contains(event.target)) {
                 validationOptions.classList.remove('show');
             }
         });
-
         const emailBtn = document.getElementById('emailBtn');
         emailBtn.addEventListener('click', function() {
-        window.open('http://mail.yucatan.gob.mx/', '_blank');
+            window.open('http://mail.yucatan.gob.mx/', '_blank');
         });
-
     });
 </script>
 

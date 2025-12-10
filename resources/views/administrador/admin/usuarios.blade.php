@@ -56,7 +56,7 @@
                         <tr>
                             <th width="10%">ID</th>
                             <th>Email</th>
-                            <th>Tipo de Usuario</th>
+                            <th>Rol</th> <!-- Cambiado de "Tipo de Usuario" a "Rol" -->
                             <th>Estado</th>
                             <th width="25%" class="text-start">Acciones</th>
                         </tr>
@@ -66,7 +66,7 @@
                         <tr>
                             <td>{{ $user->id }}</td>
                             <td>{{ $user->email }}</td>
-                            <td>{{ $user->userType->description ?? 'N/A' }}</td>
+                            <td>{{ $user->getRoleNames()->first() ?? 'Sin rol' }}</td>
                             <td>
                                 <span class="badge rounded-pill {{ $user->estatus ? 'bg-success' : 'bg-danger' }}">
                                     {{ $user->estatus ? 'Activo' : 'Inactivo' }}
@@ -75,12 +75,12 @@
                             <td class="text-start">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Acciones">
                                     <button class="btn btn-warning px-3 btn-edit"
-                                        title="Editar"
-                                        data-id="{{ $user->id }}"
-                                        data-email="{{ $user->email }}"
-                                        data-user_type_id="{{ $user->user_type_id }}"
-                                        data-estatus="{{ $user->estatus }}"
-                                        data-buildings="{{ $user->buildings->pluck('id')->toJson() }}">
+                                            title="Editar"
+                                            data-id="{{ $user->id }}"
+                                            data-email="{{ $user->email }}"
+                                            data-role_id="{{ $user->roles->first()->id ?? '' }}"
+                                            data-estatus="{{ $user->estatus ? '1' : '0' }}"
+                                            data-buildings="{{ json_encode($user->buildings->pluck('id')->toArray()) }}">
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
                                 </div>
@@ -151,14 +151,14 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const userId = this.getAttribute('data-id');
             const userEmail = this.getAttribute('data-email');
-            const userTypeId = this.getAttribute('data-user_type_id');
+            const roleId = this.getAttribute('data-role_id'); // Cambiado aquí
             const estatus = this.getAttribute('data-estatus');
             const buildings = JSON.parse(this.getAttribute('data-buildings'));
             
             // Configurar el formulario de edición
             document.getElementById('editForm').action = `/admin/usuarios/${userId}`;
             document.getElementById('edit_email').value = userEmail;
-            document.getElementById('edit_user_type_id').value = userTypeId;
+            document.getElementById('edit_role_id').value = roleId; // Cambiado aquí
             document.getElementById('edit_estatus').checked = estatus === '1';
             
             // Mostrar el modal

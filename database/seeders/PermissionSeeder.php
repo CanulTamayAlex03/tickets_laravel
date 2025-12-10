@@ -12,54 +12,49 @@ class PermissionSeeder extends Seeder
     public function run()
     {
         // ================== PERMISOS PARA TICKETS ==================
-        Permission::create(['name' => 'ver tickets']);
-        Permission::create(['name' => 'crear tickets']);
-        Permission::create(['name' => 'editar tickets']);
-        Permission::create(['name' => 'eliminar tickets']);
-        Permission::create(['name' => 'gestionar tickets']);
+        $this->createPermissionIfNotExists('ver tickets');
+        $this->createPermissionIfNotExists('crear tickets');
+        $this->createPermissionIfNotExists('editar tickets');
+        $this->createPermissionIfNotExists('eliminar tickets');
+        $this->createPermissionIfNotExists('gestionar tickets');
+        $this->createPermissionIfNotExists('asignar tickets');
 
         // ================== PERMISOS PARA USUARIOS ==================
-        Permission::create(['name' => 'ver usuarios']);
-        Permission::create(['name' => 'crear usuarios']);
-        Permission::create(['name' => 'editar usuarios']);
-        Permission::create(['name' => 'eliminar usuarios']);
-
-        // ================== PERMISOS PARA TIPOS DE USUARIO ==================
-        Permission::create(['name' => 'ver tipos usuario']);
-        Permission::create(['name' => 'crear tipos usuario']);
-        Permission::create(['name' => 'editar tipos usuario']);
-        Permission::create(['name' => 'eliminar tipos usuario']);
+        $this->createPermissionIfNotExists('ver usuarios');
+        $this->createPermissionIfNotExists('crear usuarios');
+        $this->createPermissionIfNotExists('editar usuarios');
+        $this->createPermissionIfNotExists('eliminar usuarios');
 
         // ================== PERMISOS PARA PERSONAL DE SOPORTE ==================
-        Permission::create(['name' => 'ver personal soporte']);
-        Permission::create(['name' => 'crear personal soporte']);
-        Permission::create(['name' => 'editar personal soporte']);
-        Permission::create(['name' => 'eliminar personal soporte']);
+        $this->createPermissionIfNotExists('ver personal soporte');
+        $this->createPermissionIfNotExists('crear personal soporte');
+        $this->createPermissionIfNotExists('editar personal soporte');
+        $this->createPermissionIfNotExists('eliminar personal soporte');
 
         // ================== PERMISOS PARA REPORTES ==================
-        Permission::create(['name' => 'ver reportes']);
-        Permission::create(['name' => 'generar reportes']);
-        Permission::create(['name' => 'exportar reportes']);
+        $this->createPermissionIfNotExists('ver reportes');
+        $this->createPermissionIfNotExists('generar reportes');
+        $this->createPermissionIfNotExists('exportar reportes');
 
         // ================== PERMISOS ADMINISTRATIVOS ==================
-        Permission::create(['name' => 'gestionar permisos']);
-        Permission::create(['name' => 'gestionar roles']);
-        Permission::create(['name' => 'acceso administrador']);
+        $this->createPermissionIfNotExists('gestionar permisos');
+        $this->createPermissionIfNotExists('gestionar roles');
+        $this->createPermissionIfNotExists('acceso administrador');
 
         // ================== CREAR ROLES EN MINÚSCULA ==================
-        $superadmin = Role::create(['name' => 'superadmin']);
-        $informatica = Role::create(['name' => 'informatica']);
-        $admin = Role::create(['name' => 'admin']);
-        $ati = Role::create(['name' => 'ati']);
-        $user = Role::create(['name' => 'user']);
+        $superadmin = $this->createRoleIfNotExists('superadmin');
+        $informatica = $this->createRoleIfNotExists('informatica');
+        $admin = $this->createRoleIfNotExists('admin');
+        $ati = $this->createRoleIfNotExists('ati');
+        $user = $this->createRoleIfNotExists('user');
 
         // ================== ASIGNAR PERMISOS A ROLES ==================
         
         // superadmin - TODOS los permisos
-        $superadmin->givePermissionTo(Permission::all());
+        $superadmin->syncPermissions(Permission::all());
 
         // informatica - Permisos técnicos amplios
-        $informatica->givePermissionTo([
+        $informatica->syncPermissions([
             'ver tickets', 'crear tickets', 'editar tickets', 'gestionar tickets',
             'ver usuarios', 'crear usuarios', 'editar usuarios',
             'ver reportes', 'generar reportes', 'exportar reportes',
@@ -67,7 +62,7 @@ class PermissionSeeder extends Seeder
         ]);
 
         // admin - Permisos administrativos
-        $admin->givePermissionTo([
+        $admin->syncPermissions([
             'ver tickets', 'crear tickets', 'editar tickets', 'gestionar tickets',
             'ver usuarios', 'crear usuarios', 'editar usuarios',
             'ver reportes', 'generar reportes',
@@ -75,46 +70,56 @@ class PermissionSeeder extends Seeder
         ]);
 
         // ati - Permisos de soporte técnico
-        $ati->givePermissionTo([
+        $ati->syncPermissions([
             'ver tickets', 'editar tickets', 'gestionar tickets',
             'ver reportes'
         ]);
 
         // user - Permisos básicos
-        $user->givePermissionTo([
+        $user->syncPermissions([
             'ver tickets', 'crear tickets'
         ]);
 
-        // ================== ASIGNAR ROLES SEGÚN USER_TYPE_ID ==================
+        // ================== ASIGNAR ROLES A USUARIOS EXISTENTES ==================
         
-        // User_type 2 = superadmin
-        $userSuperAdmin = User::where('user_type_id', 2)->first();
-        if ($userSuperAdmin) {
-            $userSuperAdmin->assignRole('superadmin');
+        $superadminUser = User::where('email', 'superadmin@yucatan.gob.mx')->first();
+        if ($superadminUser) {
+            $superadminUser->syncRoles(['superadmin']);
+            echo "Rol superadmin asignado a: superadmin@yucatan.gob.mx\n";
+        } else {
+            echo "No se encontró el usuario: superadmin@yucatan.gob.mx\n";
+            echo "   Crea este usuario o cambia el email en el seeder\n";
         }
 
-        // User_type 3 = informatica
-        $usersInformatica = User::where('user_type_id', 3)->get();
-        foreach ($usersInformatica as $user) {
-            $user->assignRole('informatica');
+        $usersWithoutRole = User::where('email', '!=', 'superadmin@yucatan.gob.mx')
+                               ->doesntHave('roles')
+                               ->get();
+        
+        foreach ($usersWithoutRole as $user) {
+            $user->syncRoles(['user']);
+            echo "Rol user asignado a: {$user->email}\n";
         }
 
-        // User_type 4 = admin
-        $usersAdmin = User::where('user_type_id', 4)->get();
-        foreach ($usersAdmin as $user) {
-            $user->assignRole('admin');
-        }
+        echo "Estructura de permisos creada correctamente\n";
+        echo "Tu usuario superadmin@yucatan.gob.mx tiene todos los permisos\n";
+        echo "Los demás usuarios tienen rol 'user' por defecto\n";
+    }
 
-        // User_type 5 = ati
-        $usersATI = User::where('user_type_id', 5)->get();
-        foreach ($usersATI as $user) {
-            $user->assignRole('ati');
+    private function createPermissionIfNotExists($name)
+    {
+        $permission = Permission::where('name', $name)->first();
+        if (!$permission) {
+            return Permission::create(['name' => $name]);
         }
+        return $permission;
+    }
 
-        // User_type 1 = user
-        $usersBasic = User::where('user_type_id', 1)->get();
-        foreach ($usersBasic as $user) {
-            $user->assignRole('user');
+    private function createRoleIfNotExists($name)
+    {
+        $role = Role::where('name', $name)->first();
+        if (!$role) {
+            return Role::create(['name' => $name]);
         }
+        return $role;
     }
 }
