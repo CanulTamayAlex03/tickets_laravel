@@ -7,7 +7,6 @@
             <h5 class="mb-0">Administración de usuarios</h5>
         </div>
         <div class="card-body p-3">
-            <!-- Mensajes de éxito/error -->
             @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -26,7 +25,6 @@
             </div>
             @endif
 
-            <!-- Filtro y botón de agregar -->
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <form action="{{ route('admin.usuarios') }}" method="GET">
                     <div class="input-group input-group-sm" style="width: 300px;">
@@ -49,14 +47,13 @@
                 </button>
             </div>
 
-            <!-- Tabla de usuarios -->
             <div class="table-responsive">
                 <table class="table table-sm table-striped table-hover mb-2 mx-auto" style="width: 90%; margin-top: 15px">
                     <thead class="table-dark">
                         <tr>
                             <th width="10%">ID</th>
                             <th>Email</th>
-                            <th>Rol</th> <!-- Cambiado de "Tipo de Usuario" a "Rol" -->
+                            <th>Rol</th>
                             <th>Estado</th>
                             <th width="25%" class="text-start">Acciones</th>
                         </tr>
@@ -104,24 +101,19 @@
     </div>
 </div>
 
-<!-- Incluir modales -->
 @include('administrador.admin.modals.user_create')
 @include('administrador.admin.modals.user_edit')
 
-<!-- Scripts para manejo de modales -->
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar Select2 en los selects que están fuera de modales
     $('.select2-tags:not(.modal .select2-tags)').select2({
         width: '100%',
         placeholder: "Selecciona edificios...",
         allowClear: true
     });
 
-    // Manejar el modal de creación
     $('#addUserModal').on('shown.bs.modal', function () {
-        // Inicializar Select2 dentro del modal de creación
         $('#buildings').select2({
             width: '100%',
             placeholder: "Selecciona edificios...",
@@ -130,9 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Manejar el modal de edición
     $('#editUserModal').on('shown.bs.modal', function () {
-        // Inicializar Select2 dentro del modal de edición
         $('#edit_buildings').select2({
             width: '100%',
             placeholder: "Selecciona edificios...",
@@ -141,38 +131,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Cerrar Select2 cuando se cierre el modal
     $('#addUserModal, #editUserModal').on('hidden.bs.modal', function () {
         $('#buildings, #edit_buildings').select2('destroy');
     });
 
-    // Manejar el modal de edición
     document.querySelectorAll('.btn-edit').forEach(button => {
         button.addEventListener('click', function() {
             const userId = this.getAttribute('data-id');
             const userEmail = this.getAttribute('data-email');
-            const roleId = this.getAttribute('data-role_id'); // Cambiado aquí
+            const roleId = this.getAttribute('data-role_id');
             const estatus = this.getAttribute('data-estatus');
             const buildings = JSON.parse(this.getAttribute('data-buildings'));
             
-            // Configurar el formulario de edición
             document.getElementById('editForm').action = `/admin/usuarios/${userId}`;
             document.getElementById('edit_email').value = userEmail;
-            document.getElementById('edit_role_id').value = roleId; // Cambiado aquí
+            document.getElementById('edit_role_id').value = roleId;
             document.getElementById('edit_estatus').checked = estatus === '1';
             
-            // Mostrar el modal
             const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
             editModal.show();
             
-            // Configurar los edificios después de que Select2 se inicialice
             $('#editUserModal').one('shown.bs.modal', function() {
                 const buildingSelect = document.getElementById('edit_buildings');
                 Array.from(buildingSelect.options).forEach(option => {
                     option.selected = buildings.includes(parseInt(option.value));
                 });
                 
-                // Actualizar Select2
                 $('#edit_buildings').trigger('change');
             });
         });

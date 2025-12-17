@@ -7,6 +7,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use App\Models\Building;
 use App\Models\Department;
+use App\Models\SupportPersonal;
 
 class ReportController extends Controller
 {
@@ -14,10 +15,13 @@ class ReportController extends Controller
     {
         $buildings = Building::orderBy('description')->get();
         $departments = Department::orderBy('description')->get();
+        $supportPersonnel = SupportPersonal::where('active', true) ->orderBy('name')->orderBy('lastnames')->get();
+
         
         return view('administrador.admin.reportes', compact(
             'buildings',
-            'departments'
+            'departments',
+            'supportPersonnel'
         ));
     }
 

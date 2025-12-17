@@ -7,9 +7,18 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Font;
 use Carbon\Carbon;
 
-class TicketsExport implements FromCollection, WithHeadings, WithMapping
+class TicketsExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithEvents
 {
     protected $filters;
 
@@ -57,6 +66,10 @@ class TicketsExport implements FromCollection, WithHeadings, WithMapping
             if (isset($this->filters['department_id']) && $this->filters['department_id']) {
                 $query->where('department_id', $this->filters['department_id']);
             }
+
+            if (isset($this->filters['support_personal_id']) && $this->filters['support_personal_id']) {
+            $query->where('support_personal_id', $this->filters['support_personal_id']);
+            }
         }
 
         return $query->orderBy('created_at', 'desc')->get();
@@ -68,9 +81,9 @@ class TicketsExport implements FromCollection, WithHeadings, WithMapping
             'ID Ticket',
             'Fecha Recepción',
             'Fecha Cierre',
-            'Tiempo Atención (días L-V)',
+            'Tiempo Atención',
             'Estatus',
-            'Solicitud (Detalle)',
+            'Solicitud',
             'Edificio',
             'Departamento',
             'Quién Solicita',
@@ -97,7 +110,7 @@ class TicketsExport implements FromCollection, WithHeadings, WithMapping
         $ultimoSeguimiento = '';
         if ($ticket->extraInfos->isNotEmpty()) {
             $ultimo = $ticket->extraInfos->sortByDesc('created_at')->first();
-            $ultimoSeguimiento = $ultimo->description . ' (' . $ultimo->created_at->format('d/m/Y H:i') . ')';
+            $ultimoSeguimiento = $ultimo->description;
         }
 
         return [
@@ -120,6 +133,141 @@ class TicketsExport implements FromCollection, WithHeadings, WithMapping
         ];
     }
 
+    public function styles(Worksheet $sheet)
+    {
+        return [];
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function(AfterSheet $event) {
+                $sheet = $event->sheet;
+                
+                $sheet->insertNewRowBefore(1, 2);
+                
+                $sheet->mergeCells('A1:O1');
+                $sheet->setCellValue('A1', 'REPORTE DE TICKETS - SISTEMA DE SOPORTE');
+                $sheet->getStyle('A1')->applyFromArray([
+                    'font' => [
+                        'bold' => true,
+                        'size' => 16,
+                        'color' => ['rgb' => '6A5ACD'],
+                    ],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                    ],
+                ]);
+                $sheet->getRowDimension(1)->setRowHeight(30);
+                
+                $sheet->mergeCells('A2:O2');
+                $sheet->setCellValue('A2', 'Generado el: ' . Carbon::now()->format('d/m/Y
+                '));
+                $sheet->getStyle('A2')->applyFromArray([
+                    'font' => [
+                        'italic' => true,
+                        'size' => 10,
+                        'color' => ['rgb' => '666666'],
+                    ],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    ],
+                ]);
+                $sheet->getRowDimension(2)->setRowHeight(20);
+                
+
+                $sheet->getStyle('A3:O3')->applyFromArray([
+                    'font' => [
+                        'bold' => true,
+                        'color' => ['rgb' => 'FFFFFF'],
+                        'size' => 11,
+                    ],
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => ['rgb' => '6A5ACD'],
+                    ],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                        'wrapText' => true,
+                    ],
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_MEDIUM,
+                            'color' => ['rgb' => 'FFFFFF'],
+                        ],
+                    ],
+                ]);
+                
+                $sheet->getRowDimension(3)->setRowHeight(25);
+                
+                $sheet->freezePane('A4');
+                
+                $sheet->setAutoFilter('A3:O3');
+                
+                $highestRow = $sheet->getHighestRow();
+                $highestColumn = $sheet->getHighestColumn();
+                
+                if ($highestRow > 3) {
+                    $sheet->getStyle('A4:' . $highestColumn . $highestRow)->applyFromArray([
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => Border::BORDER_THIN,
+                                'color' => ['rgb' => 'DDDDDD'],
+                            ],
+                        ],
+                        'alignment' => [
+                            'vertical' => Alignment::VERTICAL_TOP,
+                            'wrapText' => true,
+                        ],
+                    ]);
+                    
+                    for ($row = 4; $row <= $highestRow; $row++) {
+                        $fillColor = ($row % 2 == 0) ? 'FFFFFF' : 'F8F9FA';
+                        
+                        $sheet->getStyle('A' . $row . ':' . $highestColumn . $row)
+                            ->getFill()
+                            ->setFillType(Fill::FILL_SOLID)
+                            ->getStartColor()
+                            ->setRGB($fillColor);
+                        
+                        $sheet->getRowDimension($row)->setRowHeight(-1);
+                    }
+                    
+                    $sheet->getStyle('A4:A' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle('D4:D' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle('E4:E' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle('O4:O' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    
+                    $sheet->getStyle('B4:C' . $highestRow)->getNumberFormat()->setFormatCode('dd/mm/yyyy hh:mm');
+                    
+                    $sheet->getStyle('A4:A' . $highestRow)->getNumberFormat()->setFormatCode('0');
+                    $sheet->getStyle('O4:O' . $highestRow)->getNumberFormat()->setFormatCode('0');
+                }
+                
+                $sheet->getColumnDimension('F')->setWidth(40);
+                $sheet->getColumnDimension('N')->setWidth(50);
+                $sheet->getColumnDimension('L')->setWidth(35);
+                
+                foreach(range('A', 'O') as $column) {
+                    if (!in_array($column, ['F', 'N', 'L'])) {
+                        $sheet->getColumnDimension($column)->setAutoSize(true);
+                    }
+                }
+                
+                $sheet->getStyle('A1:' . $highestColumn . $highestRow)->applyFromArray([
+                    'borders' => [
+                        'outline' => [
+                            'borderStyle' => Border::BORDER_MEDIUM,
+                            'color' => ['rgb' => '6A5ACD'],
+                        ],
+                    ],
+                ]);
+            },
+        ];
+    }
+
     private function calculateBusinessDays($startDate, $endDate)
     {
         $start = Carbon::parse($startDate);
@@ -132,7 +280,7 @@ class TicketsExport implements FromCollection, WithHeadings, WithMapping
                 $businessDays++;
             }
         }
-        
+
         return $businessDays;
     }
 }

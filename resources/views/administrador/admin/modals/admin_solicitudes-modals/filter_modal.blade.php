@@ -62,7 +62,6 @@
                                 placeholder="Buscar en descripción, nombres, departamentos..." value="{{ request('search') }}">
                         </div>
 
-                        <!-- Filtros adicionales si los necesitas -->
                         <div class="col-md-6 mb-3">
                             <label for="employee_search" class="form-label">Búsqueda específica de empleado</label>
                             <input type="text" class="form-control" id="employee_search" name="employee_search"

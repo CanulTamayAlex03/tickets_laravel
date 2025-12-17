@@ -164,24 +164,41 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small mb-1">Calificación del Servicio *</label>
+                        <label class="form-label fw-bold small mb-1">
+                            Calificación del Servicio 
+                            <span class="text-danger" title="Campo obligatorio">*</span>
+                        </label>
+                        
+                        <!-- Indicador de validación -->
+                        <div id="rating-error" class="text-danger small mb-1" style="display: none;">
+                            <i class="bi bi-exclamation-circle me-1"></i>
+                            Por favor, califica el servicio.
+                        </div>
+                        
                         <div class="rating-stars-horizontal">
-                            <input type="radio" id="star1" name="stars" value="1" required>
+                            <input type="radio" id="star1" name="stars" value="1">
                             <label for="star1" class="star">★</label>
-
+                    
                             <input type="radio" id="star2" name="stars" value="2">
                             <label for="star2" class="star">★</label>
-
+                    
                             <input type="radio" id="star3" name="stars" value="3">
                             <label for="star3" class="star">★</label>
-
+                    
                             <input type="radio" id="star4" name="stars" value="4">
                             <label for="star4" class="star">★</label>
-
+                    
                             <input type="radio" id="star5" name="stars" value="5">
                             <label for="star5" class="star">★</label>
                         </div>
-                        <small class="text-muted">Selecciona de 1 a 5 estrellas</small>
+                        
+                        <!-- Contador de estrellas seleccionadas -->
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <small class="text-muted">Selecciona de 1 a 5 estrellas</small>
+                            <small id="selected-rating" class="text-primary fw-bold" style="display: none;">
+                                <i class="bi bi-star-fill"></i> <span id="rating-value">0</span>/5
+                            </small>
+                        </div>
                     </div>
                 </div>
 
@@ -201,7 +218,6 @@
 @section('scripts')
 <script>
 $(document).ready(function() {
-
     $('.select2-employee').select2({
         placeholder: function() { return $(this).data('placeholder'); },
         width: '100%',
@@ -243,8 +259,11 @@ $(document).ready(function() {
         });
     });
 
-    // ✅ FIX CORRECTO PARA CLICK IZQ → DER
     $(document).on('change', '.rating-stars-horizontal input', function() {
+        $('#rating-error').fadeOut();
+        $('#rating-value').text($(this).val());
+        $('#selected-rating').show();
+
         const value = parseInt($(this).val());
         $('.rating-stars-horizontal .star').removeClass('active');
 
@@ -255,7 +274,6 @@ $(document).ready(function() {
         });
     });
 
-    // Hover
     $(document).on('mouseenter', '.rating-stars-horizontal .star', function() {
         $(this).addClass('hover');
         $(this).prevAll('.star').addClass('hover');
@@ -267,10 +285,19 @@ $(document).ready(function() {
 
     $('#liberarForm').submit(function(e) {
         e.preventDefault();
-        if(!$('input[name="stars"]:checked').val()) {
-            alert('Selecciona una calificación.');
+        $('#rating-error').hide();
+
+
+        if (!$('input[name="stars"]:checked').val()) {
+            $('#rating-error').fadeIn();
             return;
         }
+        
+
+        const $submitBtn = $(this).find('button[type="submit"]');
+        const originalBtnText = $submitBtn.html();
+        
+        $submitBtn.prop('disabled', true).html('<i class="bi bi-hourglass-split me-1"></i> Procesando...');
 
         $.ajax({
             url: `/mis-solicitudes/${currentTicketId}/confirmar-liberacion`,
@@ -279,13 +306,108 @@ $(document).ready(function() {
             headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
             success: function(res) {
                 if(res.success) {
-                    alert(res.message);
                     $('#liberarModal').modal('hide');
-                    location.reload();
+                    
+                    $submitBtn.prop('disabled', false).html(originalBtnText);
+                    
+                    $('#liberarForm')[0].reset();
+                    $('.rating-stars-horizontal .star').removeClass('active hover');
+                    
+                    setTimeout(function() {
+                        mostrarNotificacion(res.message || '¡Ticket liberado exitosamente!', 'success');
+                        
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    }, 300);
+                } else {
+                    $submitBtn.prop('disabled', false).html(originalBtnText);
+                    
+                    mostrarNotificacion(res.message || 'Error al liberar el ticket', 'error');
                 }
+            },
+            error: function(xhr) {
+                $submitBtn.prop('disabled', false).html(originalBtnText);
+                
+                let errorMessage = 'Error al liberar el ticket';
+                
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.status === 422) {
+                    const errors = xhr.responseJSON.errors;
+                    errorMessage = Object.values(errors).flat().join('<br>');
+                } else if (xhr.status === 400) {
+                    errorMessage = xhr.responseJSON.message || 'El ticket no puede ser liberado en este estado';
+                }
+                
+                mostrarNotificacion(errorMessage, 'error');
             }
         });
     });
+
+    function mostrarNotificacion(mensaje, tipo = 'success') {
+        $('.alert.position-fixed').remove();
+        
+        const icono = tipo === 'success' ? 'check-circle' : 'exclamation-circle';
+        const alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+        
+        const $notificacion = $(`
+            <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <i class="bi bi-${icono} me-2"></i>
+                ${mensaje}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `);
+        
+        $('body').append($notificacion);
+        
+        setTimeout(() => {
+            $notificacion.alert('close');
+        }, 3000);
+    }
+
+    if (!$('#estilos-notificacion-liberacion').length) {
+        $('head').append(`
+            <style id="estilos-notificacion-liberacion">
+                .alert.position-fixed {
+                    animation: slideInRight 0.3s ease-out;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 0.9rem;
+                    padding: 12px 20px;
+                }
+                
+                @keyframes slideInRight {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                
+                .alert.position-fixed .btn-close {
+                    padding: 0.8rem 1rem;
+                    font-size: 0.8rem;
+                }
+                
+                .alert-success {
+                    background-color: #d1e7dd;
+                    color: #0f5132;
+                    border-left: 4px solid #0f5132;
+                }
+                
+                .alert-danger {
+                    background-color: #f8d7da;
+                    color: #842029;
+                    border-left: 4px solid #842029;
+                }
+            </style>
+        `);
+    }
 });
 </script>
 

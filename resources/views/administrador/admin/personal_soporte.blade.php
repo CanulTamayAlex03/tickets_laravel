@@ -7,7 +7,6 @@
             <h5 class="mb-0">Administración de Personal de Soporte</h5>
         </div>
         <div class="card-body p-3">
-            <!-- Mensajes de éxito/error -->
             @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -15,7 +14,6 @@
             </div>
             @endif
 
-            <!-- Filtro y botón de agregar -->
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <form action="{{ route('admin.soporte') }}" method="GET">
                     <div class="input-group input-group-sm" style="width: 300px;">
@@ -38,7 +36,6 @@
                 </button>
             </div>
 
-            <!-- Tabla de personal de soporte -->
             <div class="table-responsive">
                 <table class="table table-sm table-striped table-hover mb-2 mx-auto" style="width: 90%; margin-top: 15px">
                     <thead class="table-dark">
@@ -92,11 +89,9 @@
     </div>
 </div>
 
-<!-- Incluir modales desde archivos externos -->
 @include('administrador.admin.modals.support_personal_create')
 @include('administrador.admin.modals.support_personal_edit')
 
-<!-- Incluir scripts para manejo de modales -->
 @include('administrador.admin.scripts.support_personals_modals')
 
 <style>

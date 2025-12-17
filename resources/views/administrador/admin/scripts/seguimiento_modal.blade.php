@@ -70,11 +70,9 @@ $(document).ready(function() {
         });
     }
 
-// Mostrar modal cuando se hace clic en el botón de seguimiento
 $(document).on('click', '.btn-seguimiento', function() {
     const ticketId = $(this).data('ticket-id');
     
-    // Obtener datos individualmente desde data attributes
     const ticketData = {
         employee_name: $(this).data('employee-name') || '—',
         description: $(this).data('description') || '—',
@@ -84,16 +82,13 @@ $(document).on('click', '.btn-seguimiento', function() {
         support_name: $(this).data('support-name') || 'Pendiente de asignar'
     };
     
-    // Resetear formulario
     $('#form_nuevo_seguimiento_simple').hide();
     $('#nuevo_seguimiento_simple').val('');
     $('.btn-agregar-seguimiento-simple').show();
     $('#seguimientos_container_simple').html('<div class="alert alert-info">Cargando seguimientos...</div>');
     
-    // Establecer ID del ticket
     $('#seguimiento_ticket_id').val(ticketId);
     
-    // Llenar información básica desde data attributes
     $('#seguimiento_employee_name').text(ticketData.employee_name);
     $('#seguimiento_description').text(ticketData.description);
     $('#seguimiento_building').text(ticketData.building);
@@ -101,7 +96,6 @@ $(document).on('click', '.btn-seguimiento', function() {
     $('#seguimiento_created_at').text(ticketData.created_at);
     $('#seguimiento_assigned_to').text(ticketData.support_name);
     
-    // Cargar información completa del ticket
     $.ajax({
         url: `/admin/solicitudes/${ticketId}/edit`,
         type: 'GET',
@@ -109,7 +103,6 @@ $(document).on('click', '.btn-seguimiento', function() {
             if (response.success) {
                 const ticket = response.ticket;
                 
-                // Actualizar información adicional
                 if (ticket.support_closing) {
                     $('#seguimiento_support_closing').text(formatearFecha(ticket.support_closing));
                 } else {
@@ -119,17 +112,14 @@ $(document).on('click', '.btn-seguimiento', function() {
                 $('#seguimiento_status').text(ticket.service_status?.description || '—');
                 $('#seguimiento_activity').text(ticket.activity_description || 'No especificada');
                 
-                // Cargar seguimientos
                 cargarSeguimientosSimples(ticketId);
             }
         },
         error: function() {
-            // Si hay error en la carga completa, mantener al menos la información básica
             $('#seguimientos_container_simple').html('<div class="alert alert-danger">Error al cargar información completa del ticket.</div>');
         }
     });
     
-    // Mostrar modal
     $('#seguimientoModal').modal('show');
 });
 

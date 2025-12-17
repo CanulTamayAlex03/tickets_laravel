@@ -10,19 +10,16 @@
             
             <div class="modal-body p-3" style="background-color: #ffffff;">
                 <div class="row g-3">
-                    <!-- Columna izquierda: Información básica -->
                     <div class="col-md-6">
                         <h6 class="fw-bold border-bottom pb-2 mb-3 text-dark">
                             <i class="bi bi-info-circle me-2"></i>Información de la Solicitud
                         </h6>
                         
-                        <!-- Asignado a -->
                         <div class="mb-3">
                             <label class="form-label fw-bold small">Asignado a:</label>
                             <div class="bg-light p-2 rounded small" id="ver_support_personal">—</div>
                         </div>
 
-                        <!-- Información en modo lectura -->
                         <div class="row g-2 mb-2">
                             <div class="col-12">
                                 <label class="form-label fw-bold small mb-1">Solicita:</label>
@@ -71,9 +68,7 @@
                         </div>
                     </div>
 
-                    <!-- Columna derecha: Seguimiento y clasificación -->
                     <div class="col-md-6">
-                        <!-- Seguimiento Técnico -->
                         <div class="mb-3">
                             <h6 class="fw-bold border-bottom pb-2 mb-2 text-dark">
                                 <i class="bi bi-gear me-2"></i>Seguimiento Técnico
@@ -87,7 +82,6 @@
                             </div>
                         </div>
 
-                        <!-- Indicador y Servicio -->
                         <div class="mb-3">
                             <h6 class="fw-bold border-bottom pb-2 mb-2 text-dark">
                                 <i class="bi bi-tags me-2"></i>Clasificación
@@ -113,19 +107,16 @@
                             </div>
                         </div>
 
-                        <!-- Actividad realizada y Estado -->
                         <div>
                             <h6 class="fw-bold border-bottom pb-2 mb-2 text-dark">
                                 <i class="bi bi-clipboard-check me-2"></i>Cierre de Solicitud
                             </h6>
                             
-                            <!-- Actividad realizada -->
                             <div class="mb-2">
                                 <label class="form-label fw-bold small">Actividad realizada:</label>
                                 <div class="bg-light p-2 rounded small" id="ver_activity">—</div>
                             </div>
 
-                            <!-- Estado -->
                             <div class="row g-2">
                                 <div class="col-12">
                                     <label class="form-label fw-bold small">Estado de la solicitud:</label>

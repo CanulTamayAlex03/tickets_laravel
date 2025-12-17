@@ -1,5 +1,4 @@
 <script>
-// MÓDULO PARA EL MODAL DE EDICIÓN DE TICKETS
 class TicketEditarModal {
     constructor() {
         this.csrfToken = $('meta[name="csrf-token"]').attr('content');
@@ -8,11 +7,8 @@ class TicketEditarModal {
         this.initSelect2();
     }
     
-    /**
-     * Inicializar eventos
-     */
+
     bindEvents() {
-        // Delegación de eventos para botones dinámicos
         $(document)
             .on('click', '.btn-editar-ticket', (e) => this.openModal(e))
             .on('change', '#edit_indicator_type_id', (e) => this.onIndicatorChange(e))
@@ -22,9 +18,7 @@ class TicketEditarModal {
             .on('submit', '#editarSolicitudForm', (e) => this.submitForm(e));
     }
     
-    /**
-     * Inicializar Select2 para personal de soporte
-     */
+
     initSelect2() {
         if ($('.select2-support-personal-edit').length) {
             $('.select2-support-personal-edit').select2({
@@ -36,18 +30,14 @@ class TicketEditarModal {
         }
     }
     
-    /**
-     * Abrir modal de edición
-     */
+
     openModal(e) {
         const ticketId = $(e.currentTarget).data('ticket-id');
         this.resetForm();
         this.loadTicketData(ticketId);
     }
     
-    /**
-     * Resetear formulario
-     */
+
     resetForm() {
         $('#editarSolicitudForm')[0].reset();
         $('#edit_another_service_id').prop('disabled', true)
@@ -56,9 +46,7 @@ class TicketEditarModal {
         $('.btn-agregar-seguimiento').show();
     }
     
-    /**
-     * Cargar datos del ticket
-     */
+
     loadTicketData(ticketId) {
         $.ajax({
             url: `${this.baseUrl}/admin/solicitudes/${ticketId}/edit`,
@@ -71,26 +59,21 @@ class TicketEditarModal {
             },
             error: (xhr) => {
                 console.error('Error al cargar ticket:', xhr);
-                alert('Error al cargar los datos del ticket');
+                this.showNotification('Error al cargar los datos del ticket', 'error');
             }
         });
     }
     
-    /**
-     * Llenar modal con datos del ticket
-     */
+
     populateModal(ticket, extraInfos) {
-        // ID del ticket
         $('#edit_ticket_id').val(ticket.id);
         
-        // Selects
         $('#edit_support_personal_id').val(ticket.support_personal_id).trigger('change');
         $('#edit_indicator_type_id').val(ticket.indicator_type_id || '');
         $('#edit_activity_description').val(ticket.activity_description || '');
         $('#edit_service_status_id').val(ticket.service_status_id || 1);
         $('#edit_equipment_id').val(ticket.equipment_id || '');
         
-        // Información de solo lectura
         $('#edit_employee_name').text(ticket.employee?.full_name || '—');
         $('#edit_description').text(ticket.description || '—');
         $('#edit_building').text(ticket.building?.description || '—');
@@ -98,36 +81,28 @@ class TicketEditarModal {
         $('#edit_created_at').text(this.formatDate(ticket.created_at));
         $('#edit_retroalimentation').text(ticket.retroalimentation || '—');
         
-        // Calificación con estrellas
         $('#edit_stars').html(this.generateStarsHTML(ticket.stars || 0));
         
-        // Fecha de cierre
         if (ticket.support_closing) {
             $('#edit_support_closing').text(this.formatDate(ticket.support_closing));
         } else {
             $('#edit_support_closing').text('No liberado aún');
         }
         
-        // Cargar servicios si hay indicador
         if (ticket.indicator_type_id) {
             this.loadServicesByIndicator(ticket.indicator_type_id, ticket.another_service_id);
         }
         
-        // Cargar seguimientos
         this.loadSeguimientos(extraInfos || []);
     }
     
-    /**
-     * Manejar cambio de indicador
-     */
+
     onIndicatorChange(e) {
         const indicatorId = $(e.currentTarget).val();
         this.loadServicesByIndicator(indicatorId);
     }
     
-    /**
-     * Cargar servicios por indicador
-     */
+
     loadServicesByIndicator(indicatorId, selectedServiceId = null) {
         if (!indicatorId) {
             $('#edit_another_service_id').prop('disabled', true)
@@ -151,9 +126,7 @@ class TicketEditarModal {
         });
     }
     
-    /**
-     * Cargar seguimientos en el modal
-     */
+
     loadSeguimientos(seguimientos) {
         const container = $('#seguimientos_container');
         container.empty();
@@ -163,7 +136,6 @@ class TicketEditarModal {
             return;
         }
         
-        // Ordenar por fecha (más antiguo primero)
         seguimientos.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         
         seguimientos.forEach((seguimiento, index) => {
@@ -191,38 +163,31 @@ class TicketEditarModal {
         });
     }
     
-    /**
-     * Mostrar formulario para agregar seguimiento
-     */
+
     showAddSeguimiento() {
         $('#form_nuevo_seguimiento').slideDown();
         $('.btn-agregar-seguimiento').hide();
         $('#nuevo_seguimiento').focus();
     }
     
-    /**
-     * Ocultar formulario de seguimiento
-     */
+
     hideAddSeguimiento() {
         $('#form_nuevo_seguimiento').slideUp();
         $('#nuevo_seguimiento').val('');
         $('.btn-agregar-seguimiento').show();
     }
-    
-    /**
-     * Guardar nuevo seguimiento
-     */
+
     saveSeguimiento() {
         const seguimiento = $('#nuevo_seguimiento').val().trim();
         const ticketId = $('#edit_ticket_id').val();
         
         if (!seguimiento) {
-            alert('Por favor, escriba el seguimiento');
+            this.showNotification('Por favor, escriba el seguimiento', 'error');
             return;
         }
         
         if (!ticketId) {
-            alert('Error: No se encontró el ID del ticket');
+            this.showNotification('Error: No se encontró el ID del ticket', 'error');
             return;
         }
         
@@ -244,12 +209,12 @@ class TicketEditarModal {
                     this.showNotification('Seguimiento guardado exitosamente', 'success');
                     this.renumberSeguimientos();
                 } else {
-                    alert('Error: ' + response.message);
+                    this.showNotification('Error: ' + response.message, 'error');
                 }
             },
             error: (xhr) => {
                 const errorMessage = xhr.responseJSON?.message || 'Error al guardar el seguimiento';
-                alert(errorMessage);
+                this.showNotification(errorMessage, 'error');
             },
             complete: () => {
                 $btnGuardar.prop('disabled', false)
@@ -258,9 +223,7 @@ class TicketEditarModal {
         });
     }
     
-    /**
-     * Agregar seguimiento a la lista
-     */
+
     addSeguimientoToList(seguimientoData, texto) {
         const fecha = this.formatDate(seguimientoData.created_at);
         const usuario = seguimientoData.user?.email || 'Usuario';
@@ -288,9 +251,7 @@ class TicketEditarModal {
         $('#seguimientos_container .alert').remove();
     }
     
-    /**
-     * Renumerar seguimientos
-     */
+
     renumberSeguimientos() {
         $('.seguimiento-item').each((index, element) => {
             const $texto = $(element).find('.text-muted.fw-bold');
@@ -300,14 +261,16 @@ class TicketEditarModal {
         });
     }
     
-    /**
-     * Enviar formulario de edición
-     */
+
     submitForm(e) {
         e.preventDefault();
         
         const ticketId = $('#edit_ticket_id').val();
         const formData = $(e.currentTarget).serialize();
+        const $submitBtn = $(e.currentTarget).find('button[type="submit"]');
+        const originalBtnText = $submitBtn.html();
+        
+        $submitBtn.prop('disabled', true).html('<i class="bi bi-hourglass-split me-1"></i> Guardando...');
         
         $.ajax({
             url: `${this.baseUrl}/admin/solicitudes/${ticketId}`,
@@ -320,26 +283,40 @@ class TicketEditarModal {
             success: (response) => {
                 if (response.success) {
                     $('#editarSolicitudModal').modal('hide');
-                    alert(response.message);
-                    location.reload();
+                    
+                    $submitBtn.prop('disabled', false).html(originalBtnText);
+                    
+                    setTimeout(() => {
+                        this.showNotification(response.message || 'Cambios guardados exitosamente', 'success');
+                        
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    }, 300);
                 } else {
-                    alert('Error: ' + response.message);
+                    $submitBtn.prop('disabled', false).html(originalBtnText);
+                    
+                    this.showNotification('Error: ' + response.message, 'error');
                 }
             },
             error: (xhr) => {
-                const errorMessage = xhr.responseJSON?.message || 'Error al actualizar la solicitud';
-                alert(errorMessage);
+                $submitBtn.prop('disabled', false).html(originalBtnText);
+                
+                let errorMessage = 'Error al actualizar la solicitud';
+                
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.status === 422) {
+                    const errors = xhr.responseJSON.errors;
+                    errorMessage = Object.values(errors).flat().join('<br>');
+                }
+                
+                this.showNotification(errorMessage, 'error');
             }
         });
     }
     
-    // ============================================
-    // FUNCIONES DE UTILERÍA
-    // ============================================
-    
-    /**
-     * Formatear fecha
-     */
+
     formatDate(fechaString) {
         if (!fechaString) return '—';
         
@@ -353,9 +330,6 @@ class TicketEditarModal {
                fecha.toLocaleTimeString('es-MX', opciones);
     }
     
-    /**
-     * Generar HTML de estrellas
-     */
     generateStarsHTML(cantidad) {
         if (!cantidad || cantidad === 0) {
             return '<span class="text-muted">Sin calificación</span>';
@@ -374,16 +348,19 @@ class TicketEditarModal {
         return estrellasHTML;
     }
     
-    /**
-     * Mostrar notificación
-     */
+
     showNotification(mensaje, tipo = 'success') {
+        $('.alert.position-fixed').remove();
+        
+        const icono = tipo === 'success' ? 'check-circle' : 'exclamation-circle';
+        const alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+        
         const $notificacion = $(`
-            <div class="alert alert-${tipo} alert-dismissible fade show position-fixed" 
-                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
-                <i class="bi bi-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <i class="bi bi-${icono} me-2"></i>
                 ${mensaje}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         `);
         
@@ -398,6 +375,54 @@ class TicketEditarModal {
 $(document).ready(function() {
     if ($('#editarSolicitudModal').length > 0) {
         window.ticketEditarModal = new TicketEditarModal();
+        
+        if (!$('#estilos-notificacion-edicion').length) {
+            $('head').append(`
+                <style id="estilos-notificacion-edicion">
+                    .alert.position-fixed {
+                        animation: slideInRight 0.3s ease-out;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 0.9rem;
+                        padding: 12px 20px;
+                    }
+                    
+                    @keyframes slideInRight {
+                        from {
+                            transform: translateX(100%);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                    }
+                    
+                    .alert.position-fixed .btn-close {
+                        padding: 0.8rem 1rem;
+                        font-size: 0.8rem;
+                    }
+                    
+                    .alert-success {
+                        background-color: #d1e7dd;
+                        color: #0f5132;
+                        border-left: 4px solid #0f5132;
+                    }
+                    
+                    .alert-danger {
+                        background-color: #f8d7da;
+                        color: #842029;
+                        border-left: 4px solid #842029;
+                    }
+                    
+                    .alert-info {
+                        background-color: #cff4fc;
+                        color: #055160;
+                        border-left: 4px solid #055160;
+                    }
+                </style>
+            `);
+        }
     }
 });
 </script>

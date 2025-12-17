@@ -173,14 +173,12 @@ $(document).ready(function() {
 </script>
 
 <style>
-    /* Estilos generales */
     body, html {
         height: 100%;
         margin: 0;
         padding: 0;
     }
     
-    /* Contenedor principal */
     .tickets-container {
         background: url('/images/tickets_fondo.jpg') no-repeat center center fixed;
         background-size: cover;
@@ -188,7 +186,6 @@ $(document).ready(function() {
         padding: 20px;
     }
     
-    /* Estilos para el formulario compacto */
     .compact-form .form-label {
         margin-bottom: 0.2rem;
         font-size: 0.9rem;
@@ -199,17 +196,15 @@ $(document).ready(function() {
         font-size: 0.9rem;
     }
     
-    /* Estilos para la tarjeta */
     .card { 
         border-radius: 5px; 
         margin-top: 10px;
-        margin-bottom: 20px; /* Añadido para espacio en el fondo */
+        margin-bottom: 20px;
     }
     .card-header { 
         border-radius: 5px 5px 0 0 !important; 
     }
     
-    /* Estilos para Select2 */
     .select2-container .select2-selection--single {
         height: calc(1.5em + .5rem + 2px) !important;
         padding: 0.25rem 0.5rem;

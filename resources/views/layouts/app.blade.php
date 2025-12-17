@@ -346,13 +346,11 @@ $(document).ready(function() {
         
         $('#notificationContainer').prepend(notificationHtml);
         
-        // Auto-eliminar después de 4 segundos
         setTimeout(() => {
             $('.alert').alert('close');
         }, 4000);
     }
     
-    // Obtener conteo
     function checkNewTickets() {
         $.ajax({
             url: '{{ route("admin.new_tickets_count") }}',
@@ -361,18 +359,15 @@ $(document).ready(function() {
                 if (response.success) {
                     const currentCount = response.count || 0;
                     
-                    // Actualizar título si hay cambios
                     if (currentCount !== lastTicketCount) {
                         updateTitle(currentCount);
                         
-                        // Mostrar notificación si hay nuevos tickets
                         if (currentCount > lastTicketCount && isAdminSolicitudesPage()) {
                             const newTickets = currentCount - lastTicketCount;
                             showMinimalNotification(newTickets);
                         }
                     }
                     
-                    // Actualizar badge
                     const badge = $('#newTicketsBadge');
                     const countSpan = $('#newTicketsCount');
                     if (currentCount > 0) {

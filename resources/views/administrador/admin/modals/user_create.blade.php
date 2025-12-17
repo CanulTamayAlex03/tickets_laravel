@@ -17,12 +17,12 @@
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
                     <div class="mb-3">
-                        <label for="role_id" class="form-label">Rol</label> <!-- Cambiado aquí -->
-                        <select class="form-select" id="role_id" name="role_id" required> <!-- Cambiado aquí -->
+                        <label for="role_id" class="form-label">Rol</label>
+                        <select class="form-select" id="role_id" name="role_id" required>
                             <option value="">Seleccionar rol</option>
-                            @foreach($roles as $role) <!-- Cambiado aquí -->
+                            @foreach($roles as $role)
                             <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
-                                {{ $role->name }} <!-- Cambiado aquí -->
+                                {{ $role->name }}
                             </option>
                             @endforeach
                         </select>

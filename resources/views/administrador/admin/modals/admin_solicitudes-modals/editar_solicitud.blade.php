@@ -14,13 +14,11 @@
                 
                 <div class="modal-body p-3" style="background-color: #ffffff;">
                     <div class="row g-3">
-                        <!-- Columna izquierda: Información básica -->
                         <div class="col-md-6">
                             <h6 class="fw-bold border-bottom pb-2 mb-3 text-dark">
                                 <i class="bi bi-info-circle me-2"></i>Información de la Solicitud
                             </h6>
                             
-                            <!-- Asignar a -->
                             <div class="mb-3">
                                 <label for="edit_support_personal_id" class="form-label fw-bold small">Asignar a:</label>
                                 <select class="form-select form-select-sm select2-support-personal-edit" id="edit_support_personal_id" name="support_personal_id">
@@ -33,7 +31,6 @@
                                 </select>
                             </div>
 
-                            <!-- Información en modo lectura -->
                             <div class="row g-2 mb-2">
                                 <div class="col-12">
                                     <label class="form-label fw-bold small mb-1">Solicita:</label>
@@ -82,15 +79,12 @@
                             </div>
                         </div>
 
-                        <!-- Columna derecha: Edición y seguimiento -->
                         <div class="col-md-6">
-                            <!-- Seguimiento Técnico -->
                             <div class="mb-3">
                                 <h6 class="fw-bold border-bottom pb-2 mb-2 text-dark">
                                     <i class="bi bi-gear me-2"></i>Seguimiento Técnico
                                 </h6>
                                 
-                                <!-- Botón para agregar seguimiento -->
                                 <div class="text-end mb-2">
                                     <button type="button" class="btn btn-sm btn-outline-primary btn-agregar-seguimiento">
                                         <i class="bi bi-plus-circle me-1"></i> Agregar Seguimiento
@@ -127,7 +121,6 @@
                                 </div>
                             </div>
 
-                            <!-- Indicador y Servicio -->
                             <div class="mb-3">
                                 <h6 class="fw-bold border-bottom pb-2 mb-2 text-dark">
                                     <i class="bi bi-tags me-2"></i>Clasificación
@@ -154,7 +147,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Solo el campo de equipo -->
                                 <div class="row g-2 mt-2">
                                     <div class="col-12">
                                         <label for="edit_equipment_id" class="form-label fw-bold small">Equipo:</label>
@@ -170,13 +162,11 @@
                                 </div>
                             </div>
 
-                            <!-- Actividad realizada y Estado -->
                             <div>
                                 <h6 class="fw-bold border-bottom pb-2 mb-2 text-dark">
                                     <i class="bi bi-clipboard-check me-2"></i>Cierre de Solicitud
                                 </h6>
                                 
-                                <!-- Actividad realizada -->
                                 <div class="mb-2">
                                     <label for="edit_activity_description" class="form-label fw-bold small">Actividad realizada:</label>
                                     <textarea class="form-control form-control-sm" id="edit_activity_description" 
@@ -184,7 +174,6 @@
                                               placeholder="Describa las actividades realizadas..."></textarea>
                                 </div>
 
-                                <!-- Solo estado, sin checkbox -->
                                 <div class="row g-2">
                                     <div class="col-12">
                                         <label for="edit_service_status_id" class="form-label fw-bold small">Estado:</label>

@@ -163,15 +163,13 @@
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ Script de roles cargado');
+    console.log('Script de roles cargado');
 
-    // Remover el data-bs-toggle de los botones para evitar conflictos
     document.querySelectorAll('.editar-rol').forEach(button => {
         button.removeAttribute('data-bs-toggle');
         button.removeAttribute('data-bs-target');
     });
 
-    // Mostrar modal de edición con AJAX
     document.addEventListener('click', function(e) {
         if (e.target.closest('.editar-rol')) {
             const button = e.target.closest('.editar-rol');
@@ -182,7 +180,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function loadRoleData(id) {
-        // Mostrar spinner de carga
         document.getElementById('permisosContainer').innerHTML = `
             <div class="col-12 text-center py-3">
                 <div class="spinner-border text-primary" role="status">
@@ -192,14 +189,11 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
 
-        // Obtener el modal
         const modalElement = document.getElementById('editarRolModal');
         const modal = new bootstrap.Modal(modalElement);
         
-        // Mostrar el modal
         modal.show();
 
-        // Hacer petición AJAX para obtener los datos
         fetch('/admin/gestion-permisos/rol/' + id + '/edit-ajax')
             .then(response => {
                 if (!response.ok) {
@@ -214,10 +208,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('edit_rol_id').value = data.rol.id;
                     document.getElementById('edit_nombre').value = data.rol.name;
 
-                    // Usar la ruta correcta
                     document.getElementById('editarRolForm').action = '/admin/gestion-permisos/rol/' + data.rol.id + '/permisos';
 
-                    // Construir los checkboxes de permisos
                     let permissionsHtml = '';
                     if (data.permisos && data.permisos.length > 0) {
                         data.permisos.forEach(function(perm) {
@@ -262,7 +254,6 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             });
 
-        // Manejar el cierre del modal
         const closeButtons = modalElement.querySelectorAll('[data-bs-dismiss="modal"]');
         closeButtons.forEach(button => {
             button.addEventListener('click', function() {
@@ -277,7 +268,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(this);
             const submitButton = this.querySelector('button[type="submit"]');
 
-            // Deshabilitar botón para evitar múltiples envíos
             submitButton.disabled = true;
             submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Guardando...';
         
@@ -298,9 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 if (data.success) {
-                    // Mostrar mensaje de éxito
                     showAlert('success', data.message);
-                    // Cerrar modal y recargar
                     setTimeout(() => {
                         modal.hide();
                         window.location.reload();
@@ -312,13 +300,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error al guardar:', error);
                 showAlert('danger', 'Error al guardar los cambios: ' + error.message);
-                // Rehabilitar botón
                 submitButton.disabled = false;
                 submitButton.innerHTML = 'Actualizar';
             });
         };
 
-        // Función para mostrar alertas
         function showAlert(type, message) {
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
@@ -327,11 +313,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
 
-            // Insertar al inicio del contenido principal
             const content = document.querySelector('.container-fluid');
             content.insertBefore(alertDiv, content.firstChild);
 
-            // Auto-eliminar después de 5 segundos
             setTimeout(() => {
                 if (alertDiv.parentNode) {
                     alertDiv.remove();

@@ -72,7 +72,6 @@ $(document).ready(function() {
                         return;
                     }
 
-                    // Ordenar del más viejo al más nuevo
                     seguimientos.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
                     seguimientos.forEach(function(seguimiento, index) {
@@ -112,7 +111,6 @@ $(document).ready(function() {
         const $boton = $(this);
         const ticketId = $boton.data('ticket-id');
         
-        // Obtener los datos individualmente de los data attributes
         const ticketData = {
             employee_name: $boton.data('employee-name') || '—',
             description: $boton.data('description') || '—',
@@ -122,20 +120,16 @@ $(document).ready(function() {
             support_name: $boton.data('support-name') || 'Pendiente de asignar'
         };
         
-        // Resetear contenido
         $('#seguimientos_container_ver').html('<div class="alert alert-info">Cargando seguimientos...</div>');
         
-        // Mostrar ID del ticket
         $('#ver_ticket_id').text(ticketId);
         
-        // Llenar información básica
         $('#ver_employee_name').text(ticketData.employee_name);
         $('#ver_description').text(ticketData.description);
         $('#ver_building').text(ticketData.building);
         $('#ver_department').text(ticketData.department);
         $('#ver_created_at').text(ticketData.created_at);
         
-        // Mostrar información de soporte
         if (ticketData.support_name && ticketData.support_name !== 'Pendiente de asignar') {
             $('#ver_support_personal').html(`
                 <i class="bi bi-person-check me-1"></i>
@@ -150,7 +144,6 @@ $(document).ready(function() {
             `);
         }
         
-        // Cargar información completa del ticket
         $.ajax({
             url: `/admin/solicitudes/${ticketId}/edit`,
             type: 'GET',
@@ -158,14 +151,12 @@ $(document).ready(function() {
                 if (response.success) {
                     const ticket = response.ticket;
                     
-                    // Fecha de liberación
                     if (ticket.support_closing) {
                         $('#ver_support_closing').text(formatearFecha(ticket.support_closing));
                     } else {
                         $('#ver_support_closing').text('No liberado aún');
                     }
                     
-                    // Estado
                     const estadoInfo = obtenerEstadoInfo(ticket);
                     $('#ver_status').html(`
                         <span class="badge badge-estado bg-${estadoInfo.color}">
@@ -173,13 +164,10 @@ $(document).ready(function() {
                         </span>
                     `);
                     
-                    // Indicador
                     $('#ver_indicator').text(ticket.indicator_type?.description || '—');
                     
-                    // Servicio
                     $('#ver_service').text(ticket.another_service?.description || '—');
                     
-                    // Equipo
                     let equipoInfo = '—';
                     if (ticket.equipment?.description) {
                         equipoInfo = ticket.equipment.description;
@@ -188,20 +176,16 @@ $(document).ready(function() {
                     }
                     $('#ver_equipment').text(equipoInfo);
                     
-                    // Retroalimentación
                     if (ticket.retroalimentation) {
                         $('#ver_retroalimentation').text(ticket.retroalimentation);
                     } else {
                         $('#ver_retroalimentation').text('No hay retroalimentación');
                     }
                     
-                    // Calificación con estrellas
                     $('#ver_stars').html(generarEstrellasHTML(ticket.stars || 0));
                     
-                    // Actividad realizada
                     $('#ver_activity').text(ticket.activity_description || 'No especificada');
                     
-                    // Cargar seguimientos
                     cargarSeguimientosVer(ticketId);
                 }
             },
@@ -210,7 +194,6 @@ $(document).ready(function() {
             }
         });
         
-        // Mostrar modal
         $('#verModal').modal('show');
     });
 });
