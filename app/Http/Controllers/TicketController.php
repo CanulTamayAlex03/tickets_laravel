@@ -14,6 +14,7 @@ use App\Models\ServiceStatus;
 use App\Models\Equipment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class TicketController extends Controller
 {
@@ -339,5 +340,42 @@ class TicketController extends Controller
             'count' => $count,
             'last_updated' => now()->toISOString()
         ]);
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $ticket = Ticket::with(['employee', 'serviceStatus'])->findOrFail($id);
+            Log::info('Ticket eliminado por usuario', [
+                'ticket_id' => $ticket->id,
+                'user_id' => Auth::id(),
+                'user_name' => Auth::user()->name ?? 'Unknown',
+                'ticket_description' => $ticket->description,
+                'employee' => $ticket->employee->full_name ?? 'N/A',
+                'status' => $ticket->serviceStatus->description ?? 'N/A',
+                'deleted_at' => now()
+            ]);
+
+            $ticket->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ticket eliminado exitosamente.'
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El ticket no existe o ya fue eliminado.'
+            ], 404);
+
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar ticket: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar el ticket: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

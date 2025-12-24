@@ -20,12 +20,17 @@ Route::get('/', function () {
 
 Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
 
-// Ruta para "Mis Solicitudes" - DEBE IR PRIMERO
+// Ruta para "Mis Solicitudes"
 Route::get('/mis-solicitudes', [MisSolicitudesController::class, 'index'])
     ->name('mis_solicitudes');
 
 Route::get('/mis-solicitudes/{id}/detalles', [TicketLiberacionController::class, 'show'])->name('mis_solicitudes.detalles');
 Route::post('/mis-solicitudes/{id}/confirmar-liberacion', [TicketLiberacionController::class, 'liberar'])->name('mis_solicitudes.confirmar_liberacion');
+
+Route::middleware(['auth', 'permission:eliminar tickets'])->group(function () {
+    Route::delete('/tickets/{id}', [TicketController::class, 'destroy'])
+        ->name('tickets.destroy');
+});
 
 // Rutas de autenticación
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -54,7 +59,7 @@ Route::prefix('admin')->middleware(['auth', 'permission:acceso administrador'])-
     Route::post('/solicitudes/{id}/agregar-seguimiento', [TicketController::class, 'agregarSeguimiento'])
     ->name('admin.solicitudes.agregar-seguimiento')
     ->middleware('permission:editar tickets');
-
+    
     // Ruta para verificar nuevas solicitudes
     Route::get('/admin/tickets/check-new', [TicketController::class, 'checkNewTickets'])
     ->name('admin.tickets.check_new')

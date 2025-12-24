@@ -87,7 +87,15 @@
                                 @if (request('status') == 'nuevo' || !request()->has('status'))
                                     <div class="d-flex justify-content-center gap-1">
                                         @can('eliminar tickets')
-                                        <button class="btn btn-danger btn-sm" title="Eliminar">
+                                        <button class="btn btn-danger btn-sm btn-eliminar" 
+                                                title="Eliminar ticket"
+                                                data-ticket-id="{{ $ticket->id }}"
+                                                data-ticket-data='{
+                                                    "descripcion": "{{ addslashes($ticket->description) }}",
+                                                    "usuario": "{{ addslashes($ticket->employee?->full_name ?? 'Sin usuario') }}",
+                                                    "fecha": "{{ $ticket->created_at->format('d/m/Y H:i') }}",
+                                                    "estatus": "{{ $ticket->serviceStatus->description ?? 'Sin estatus' }}"
+                                                }'>
                                             <i class="bi bi-trash"></i>
                                         </button>
                                         @endcan
@@ -146,7 +154,15 @@
                                             </button>
                                             
                                             @can('eliminar tickets')
-                                            <button class="btn btn-danger btn-sm" title="Eliminar">
+                                            <button class="btn btn-danger btn-sm btn-eliminar" 
+                                                    title="Eliminar ticket"
+                                                    data-ticket-id="{{ $ticket->id }}"
+                                                    data-ticket-data='{
+                                                        "descripcion": "{{ addslashes($ticket->description) }}",
+                                                        "usuario": "{{ addslashes($ticket->employee?->full_name ?? 'Sin usuario') }}",
+                                                        "fecha": "{{ $ticket->created_at->format('d/m/Y H:i') }}",
+                                                        "estatus": "{{ $ticket->serviceStatus->description ?? 'Sin estatus' }}"
+                                                    }'>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                             @endcan
@@ -211,6 +227,7 @@
 @include('administrador.admin.modals.admin_solicitudes-modals.editar_solicitud')
 @include('administrador.admin.modals.admin_solicitudes-modals.seguimiento_modal')
 @include('administrador.admin.modals.admin_solicitudes-modals.ver_modal')
+@include('administrador.admin.modals.admin_solicitudes-modals.eliminar_modal')
 @endsection
 
 @section('scripts')
@@ -219,6 +236,7 @@
     @include('administrador.admin.scripts.seguimiento_modal')
     @include('administrador.admin.scripts.ver_modal')
     @include('administrador.admin.scripts.editar_solicitud')
+    @include('administrador.admin.scripts.eliminar_solicitud')
   
 <script>
 $(document).ready(function() {   

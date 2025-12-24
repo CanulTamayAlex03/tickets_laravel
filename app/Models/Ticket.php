@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ticket extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'requests';
 
@@ -36,6 +37,7 @@ class Ticket extends Model
         'stars' => 'integer',
         'mk_pendient' => 'boolean',
         'support_closing' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     public function building()
