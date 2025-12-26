@@ -25,7 +25,7 @@ class AuthController extends Controller
         if ($user && password_verify($credentials['password'], $user->encrypted_password)) {
             Auth::login($user, $request->has('remember'));
             
-            return redirect()->intended('/');
+            return redirect()->intended('/admin/admin_solicitudes');
         }
 
         return back()->withErrors([
