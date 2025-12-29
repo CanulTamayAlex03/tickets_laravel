@@ -20,15 +20,11 @@
                             </h6>
                             
                             <div class="mb-3">
-                                <label for="edit_support_personal_id" class="form-label fw-bold small">Asignar a:</label>
-                                <select class="form-select form-select-sm select2-support-personal-edit" id="edit_support_personal_id" name="support_personal_id">
-                                    <option value="">Seleccionar personal de soporte</option>
-                                    @foreach($supportPersonals as $personal)
-                                        <option value="{{ $personal->id }}">
-                                            {{ $personal->name }} {{ $personal->lastnames }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <label class="form-label fw-bold small mb-1">Asignado a:</label>
+                                <div class="bg-light p-2 rounded small" id="edit_support_personal_display">
+                                    <span id="edit_support_personal_name">No asignado</span>
+                                </div>
+                                <input type="hidden" id="edit_support_personal_id" name="support_personal_id">
                             </div>
 
                             <div class="row g-2 mb-2">
@@ -93,6 +89,12 @@
 
                                 <div id="lista_seguimientos" class="mt-2">
                                     <h6 class="fw-bold small mb-2">Seguimientos anteriores:</h6>
+
+                                    <div id="seguimientos_validation_message" class="alert alert-warning small p-2 mb-2" style="display: none;">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        <strong>¡Atención!</strong> Se requiere al menos un seguimiento técnico para guardar cambios.
+                                    </div>
+
                                     <div id="seguimientos_container" class="small">
                                     </div>
                                 </div>
@@ -129,7 +131,7 @@
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label for="edit_indicator_type_id" class="form-label fw-bold small">Indicador:</label>
-                                        <select class="form-select form-select-sm" id="edit_indicator_type_id" name="indicator_type_id">
+                                        <select class="form-select form-select-sm" id="edit_indicator_type_id" name="indicator_type_id" required>
                                             <option value="">Seleccionar</option>
                                             @foreach($indicatorTypes as $indicator)
                                                 <option value="{{ $indicator->id }}">
@@ -141,7 +143,7 @@
 
                                     <div class="col-md-6">
                                         <label for="edit_another_service_id" class="form-label fw-bold small">Servicio:</label>
-                                        <select class="form-select form-select-sm" id="edit_another_service_id" name="another_service_id" disabled>
+                                        <select class="form-select form-select-sm" id="edit_another_service_id" name="another_service_id" disabled required>
                                             <option value="">Primero seleccione un indicador</option>
                                         </select>
                                     </div>
@@ -150,7 +152,7 @@
                                 <div class="row g-2 mt-2">
                                     <div class="col-12">
                                         <label for="edit_equipment_id" class="form-label fw-bold small">Equipo:</label>
-                                        <select class="form-select form-select-sm" id="edit_equipment_id" name="equipment_id">
+                                        <select class="form-select form-select-sm" id="edit_equipment_id" name="equipment_id" required>
                                             <option value="">Seleccionar equipo</option>
                                             @foreach($equipmentList as $equipment)
                                                 <option value="{{ $equipment->id }}">
@@ -171,7 +173,7 @@
                                     <label for="edit_activity_description" class="form-label fw-bold small">Actividad realizada:</label>
                                     <textarea class="form-control form-control-sm" id="edit_activity_description" 
                                               name="activity_description" rows="2" 
-                                              placeholder="Describa las actividades realizadas..."></textarea>
+                                              placeholder="Describa las actividades realizadas..." required></textarea>
                                 </div>
 
                                 <div class="row g-2">

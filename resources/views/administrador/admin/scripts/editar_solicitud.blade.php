@@ -3,6 +3,7 @@ class TicketEditarModal {
     constructor() {
         this.csrfToken = $('meta[name="csrf-token"]').attr('content');
         this.baseUrl = window.baseUrl || '';
+        this.seguimientosCount = 0;
         this.bindEvents();
         this.initSelect2();
     }
@@ -19,16 +20,16 @@ class TicketEditarModal {
     }
     
 
-    initSelect2() {
-        if ($('.select2-support-personal-edit').length) {
-            $('.select2-support-personal-edit').select2({
-                placeholder: "Buscar personal de soporte",
-                language: "es",
-                width: '100%',
-                dropdownParent: $('#editarSolicitudModal')
-            });
-        }
-    }
+    //initSelect2() {
+    //    if ($('.select2-support-personal-edit').length) {
+    //        $('.select2-support-personal-edit').select2({
+    //            placeholder: "Buscar personal de soporte",
+    //            language: "es",
+    //            width: '100%',
+    //            dropdownParent: $('#editarSolicitudModal')
+    //        });
+    //    }
+    //}
     
 
     openModal(e) {
@@ -40,6 +41,12 @@ class TicketEditarModal {
 
     resetForm() {
         $('#editarSolicitudForm')[0].reset();
+        $('#edit_support_personal_name').text('No asignado');
+        $('#edit_support_personal_id').val('');
+        
+        this.seguimientosCount = 0;
+        $('#seguimientos_validation_message').hide();
+        
         $('#edit_another_service_id').prop('disabled', true)
             .html('<option value="">Primero seleccione un indicador</option>');
         $('#form_nuevo_seguimiento').hide();
@@ -68,7 +75,19 @@ class TicketEditarModal {
     populateModal(ticket, extraInfos) {
         $('#edit_ticket_id').val(ticket.id);
         
-        $('#edit_support_personal_id').val(ticket.support_personal_id).trigger('change');
+        //$('#edit_support_personal_id').val(ticket.support_personal_id).trigger('change');
+        if (ticket.support_personal_id) {
+            const personalName = ticket.support_personal?.name 
+                ? `${ticket.support_personal.name} ${ticket.support_personal.lastnames}`
+                : ticket.support_personal_name || 'Nombre no disponible';
+
+            $('#edit_support_personal_name').text(personalName);
+            $('#edit_support_personal_id').val(ticket.support_personal_id);
+        } else {
+            $('#edit_support_personal_name').text('No asignado');
+            $('#edit_support_personal_id').val('');
+        }        
+
         $('#edit_indicator_type_id').val(ticket.indicator_type_id || '');
         $('#edit_activity_description').val(ticket.activity_description || '');
         $('#edit_service_status_id').val(ticket.service_status_id || 1);
@@ -94,6 +113,8 @@ class TicketEditarModal {
         }
         
         this.loadSeguimientos(extraInfos || []);
+
+        this.validateSeguimientos();
     }
     
 
@@ -101,7 +122,16 @@ class TicketEditarModal {
         const indicatorId = $(e.currentTarget).val();
         this.loadServicesByIndicator(indicatorId);
     }
-    
+
+    validateSeguimientos() {
+        if (this.seguimientosCount === 0) {
+            $('#seguimientos_validation_message').show();
+            return false;
+        } else {
+            $('#seguimientos_validation_message').hide();
+            return true;
+        }
+    }
 
     loadServicesByIndicator(indicatorId, selectedServiceId = null) {
         if (!indicatorId) {
@@ -130,6 +160,8 @@ class TicketEditarModal {
     loadSeguimientos(seguimientos) {
         const container = $('#seguimientos_container');
         container.empty();
+
+        this.seguimientosCount = seguimientos.length;
         
         if (seguimientos.length === 0) {
             container.html('<div class="alert alert-info">No hay seguimientos registrados.</div>');
@@ -161,6 +193,7 @@ class TicketEditarModal {
             
             container.append(seguimientoHtml);
         });
+        this.validateSeguimientos();
     }
     
 
@@ -204,10 +237,13 @@ class TicketEditarModal {
             },
             success: (response) => {
                 if (response.success) {
+                    this.seguimientosCount++;
                     this.addSeguimientoToList(response.seguimiento, seguimiento);
                     this.hideAddSeguimiento();
                     this.showNotification('Seguimiento guardado exitosamente', 'success');
                     this.renumberSeguimientos();
+
+                    this.validateSeguimientos();
                 } else {
                     this.showNotification('Error: ' + response.message, 'error');
                 }
@@ -247,8 +283,9 @@ class TicketEditarModal {
             </div>
         `;
         
+        $('#seguimientos_container .alert.alert-info').remove();
+        
         $('#seguimientos_container').append(nuevoSeguimientoHTML);
-        $('#seguimientos_container .alert').remove();
     }
     
 
@@ -261,9 +298,76 @@ class TicketEditarModal {
         });
     }
     
+    validateForm() {
+        let isValid = true;
+        let firstErrorField = null;
+        
+        const requiredFields = [
+            '#edit_indicator_type_id',
+            '#edit_another_service_id',
+            '#edit_equipment_id',
+            '#edit_activity_description',
+            '#edit_service_status_id'
+        ];
+        
+        requiredFields.forEach(field => {
+            const $field = $(field);
+            const value = $field.val();
+            
+            if ($field.is(':disabled') && field === '#edit_another_service_id') {
+                const indicatorSelected = $('#edit_indicator_type_id').val();
+                if (indicatorSelected) {
+                    this.showNotification('Debe seleccionar un servicio para el indicador elegido', 'error');
+                    isValid = false;
+                    if (!firstErrorField) firstErrorField = $field;
+                }
+            } else if ($field.prop('required') && (!value || value.trim() === '')) {
+                $field.addClass('is-invalid');
+                isValid = false;
+                if (!firstErrorField) firstErrorField = $field;
+            } else {
+                $field.removeClass('is-invalid');
+            }
+        });
+        
+        const supportPersonalId = $('#edit_support_personal_id').val();
+        if (!supportPersonalId) {
+            this.showNotification('Debe asignar personal de soporte antes de guardar', 'error');
+            $('#edit_support_personal_display').addClass('border-danger');
+            isValid = false;
+        } else {
+            $('#edit_support_personal_display').removeClass('border-danger');
+        }
+        
+        if (this.seguimientosCount === 0) {
+            this.showNotification('Debe agregar al menos un seguimiento técnico antes de guardar', 'error');
+            
+            $('#lista_seguimientos').addClass('border border-danger rounded p-2');
+            
+            $('html, body').animate({
+                scrollTop: $('#lista_seguimientos').offset().top - 100
+            }, 500);
+            
+            isValid = false;
+        } else {
+            $('#lista_seguimientos').removeClass('border border-danger rounded p-2');
+        }
+        
+        if (firstErrorField && !isValid) {
+            $('html, body').animate({
+                scrollTop: firstErrorField.offset().top - 100
+            }, 500);
+        }
+        
+        return isValid;
+    }
 
     submitForm(e) {
         e.preventDefault();
+
+        if (!this.validateForm()) {
+            return;
+        }
         
         const ticketId = $('#edit_ticket_id').val();
         const formData = $(e.currentTarget).serialize();
