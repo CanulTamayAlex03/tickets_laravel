@@ -27,17 +27,22 @@
                         <!-- Contraseña -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">Contraseña:</label>
-                            <input type="password" name="password" class="form-control form-control-sm" placeholder="Ingrese su contraseña" required>
+                            <div class="input-group">
+                                <input type="password" name="password" id="password" class="form-control form-control-sm" placeholder="Ingrese su contraseña" required>
+                                <button class="btn btn-outline-secondary btn-sm" type="button" id="togglePassword">
+                                    <i class="bi bi-eye" id="eyeIcon"></i>
+                                </button>
+                            </div>
                             @error('password')
                             <span class="text-danger small">{{ $message }}</span>
                             @enderror
                         </div>
 
-                        <!-- Recordar sesión -->
+                        <!-- Recordar sesión 
                         <div class="mb-3 form-check">
                             <input type="checkbox" name="remember" class="form-check-input" id="remember">
                             <label class="form-check-label" for="remember">Recordar sesión</label>
-                        </div>
+                        </div> -->
 
                         <!-- Botón -->
                         <div class="d-flex justify-content-center mt-3">
@@ -77,5 +82,27 @@
         height: 100%;
         overflow: hidden;
     }
+
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            if (type === 'text') {
+                eyeIcon.classList.remove('bi-eye');
+                eyeIcon.classList.add('bi-eye-slash');
+            } else {
+                eyeIcon.classList.remove('bi-eye-slash');
+                eyeIcon.classList.add('bi-eye');
+            }
+        });
+    });
+</script>
 @endsection

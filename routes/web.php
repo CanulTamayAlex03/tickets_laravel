@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\PermissionManagerController;
 use App\Http\Controllers\MisSolicitudesController;
 use App\Http\Controllers\TicketLiberacionController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/', function () {
     $buildings = App\Models\Building::orderBy('description')->get();
@@ -65,9 +66,17 @@ Route::prefix('admin')->middleware(['auth', 'permission:acceso administrador'])-
     ->name('admin.tickets.check_new')
     ->middleware('auth');
 
+    Route::get('/admin/notifications/new-tickets-count', [TicketController::class, 'getNewTicketsCount'])
+    ->name('admin.notifications.new-tickets-count')
+    ->middleware(['auth', 'permission:notificaciones tickets nuevos']);
+
     Route::get('/admin/new-tickets-count', [TicketController::class, 'getNewTicketsCount'])
     ->name('admin.new_tickets_count')
     ->middleware(['auth', 'can:ver tickets']);
+
+    Route::get('/notifications/assigned-count', [NotificationController::class, 'getAssignedTicketsCount'])
+    ->name('admin.notifications.assigned-count')
+    ->middleware(['auth', 'permission:acceso administrador']);
 
     // Gestión de usuarios
     Route::get('/usuarios', [UserController::class, 'index'])

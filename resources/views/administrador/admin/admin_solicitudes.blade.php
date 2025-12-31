@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid mt-3">
-    
+    <div id="notificationContainer" style="position: fixed; top: 80px; right: 20px; z-index: 1060;"></div>
     <div class="card shadow-sm">
         <div class="card-header bg-dark text-white py-2 text-center">
             <h5 class="mb-0">Administración de Solicitudes</h5>
@@ -245,6 +245,152 @@ $(document).ready(function() {
     let currentTicketCount = {{ $tickets->total() }};
     let lastTimestamp = '{{ now()->toISOString() }}';
     
+    // ============ FUNCIONES PARA NOTIFICACIONES ============
+    
+    function checkNotifications() {
+        // Verificar si el usuario tiene permisos de admin (nuevos tickets)
+        if (window.userPermissions && window.userPermissions.includes('notificaciones tickets nuevos')) {
+            checkNewTicketsForAdmin();
+        }
+        
+        // Verificar si el usuario tiene permisos de soporte (tickets asignados)
+        if (window.userPermissions && window.userPermissions.includes('notificaciones tickets asignados')) {
+            checkAssignedTicketsForSupport();
+        }
+    }
+    
+    function checkNewTicketsForAdmin() {
+        $.ajax({
+            url: "{{ route('admin.new_tickets_count') }}",
+            type: 'GET',
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(response) {
+                if (response.success && response.count > 0) {
+                    showAdminNotification(response.count);
+                }
+            },
+            error: function() {
+                // Silenciar error
+            }
+        });
+    }
+    
+    function checkAssignedTicketsForSupport() {
+        $.ajax({
+            url: '/admin/notifications/assigned-count',
+            type: 'GET',
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(response) {
+                if (response.success && response.count > 0) {
+                    showSupportNotification(response.count);
+                }
+            },
+            error: function() {
+                // Silenciar error
+            }
+        });
+    }
+    
+    function showAdminNotification(count) {
+        // Verificar si ya hay una notificación similar visible
+        const existingNotification = $('#notificationContainer').find('.alert-primary').filter(function() {
+            return $(this).text().includes('Nuevos Tickets');
+        });
+        
+        if (existingNotification.length > 0) {
+            // Actualizar conteo en notificación existente
+            existingNotification.find('.small').html(`Tienes ${count} nuevo(s) ticket(s) por asignar`);
+            existingNotification.find('.text-muted').html(`
+                <i class="bi bi-clock me-1"></i>
+                ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            `);
+            return;
+        }
+        
+        const $notification = $(`
+            <div class="alert alert-primary alert-dismissible fade show notification-alert" 
+                 style="max-width: 300px; margin-bottom: 10px;">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-bell-fill me-2"></i>
+                    <div class="flex-grow-1">
+                        <strong>Nuevos Tickets</strong>
+                        <div class="small mt-1">Tienes ${count} nuevo(s) ticket(s) por asignar</div>
+                        <div class="text-muted mt-1" style="font-size: 0.7rem;">
+                            <i class="bi bi-clock me-1"></i>
+                            ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        `);
+        
+        $('#notificationContainer').prepend($notification);
+        
+        // Redirigir al hacer clic
+        $notification.on('click', function(e) {
+            if (!$(e.target).hasClass('btn-close')) {
+                window.location.href = "{{ route('admin.admin_solicitudes', ['status' => 'nuevo']) }}";
+            }
+        });
+        
+        // Auto-eliminar después de 6 segundos
+        setTimeout(() => {
+            $notification.alert('close');
+        }, 6000);
+    }
+    
+    function showSupportNotification(count) {
+        // Verificar si ya hay una notificación similar visible
+        const existingNotification = $('#notificationContainer').find('.alert-warning').filter(function() {
+            return $(this).text().includes('Tickets Asignados');
+        });
+        
+        if (existingNotification.length > 0) {
+            // Actualizar conteo en notificación existente
+            existingNotification.find('.small').html(`Tienes ${count} ticket(s) recientemente asignado(s)`);
+            existingNotification.find('.text-muted').html(`
+                <i class="bi bi-clock me-1"></i>
+                ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            `);
+            return;
+        }
+        
+        const $notification = $(`
+            <div class="alert alert-warning alert-dismissible fade show notification-alert" 
+                 style="max-width: 300px; margin-bottom: 10px;">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-person-plus-fill me-2"></i>
+                    <div class="flex-grow-1">
+                        <strong>Tickets Asignados</strong>
+                        <div class="small mt-1">Tienes ${count} ticket(s) recientemente asignado(s)</div>
+                        <div class="text-muted mt-1" style="font-size: 0.7rem;">
+                            <i class="bi bi-clock me-1"></i>
+                            ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        `);
+        
+        $('#notificationContainer').prepend($notification);
+        
+        $notification.on('click', function(e) {
+            if (!$(e.target).hasClass('btn-close')) {
+                window.location.href = "{{ route('admin.admin_solicitudes', ['status' => 'atendiendo']) }}";
+            }
+        });
+        
+        setTimeout(() => {
+            $notification.alert('close');
+        }, 6000);
+    }
+    
+    // ============ FUNCIONES ORIGINALES ============
+    
     function mostrarNotificacion(mensaje, tipo = 'success') {
         $('.alert.position-fixed').remove();
         
@@ -299,7 +445,7 @@ $(document).ready(function() {
                         
                         const newTickets = (response.total_count || response.count) - currentTicketCount;
                         if (newTickets > 0) {
-                            showNewTicketsNotification(newTickets);
+                            
                         }
                         
                         currentTicketCount = response.total_count || response.count;
@@ -405,34 +551,7 @@ $(document).ready(function() {
         }
     }
     
-    function showNewTicketsNotification(count) {
-        if (!shouldActivateAutoRefresh()) return;
-        
-        const notificationHtml = `
-            <div class="alert alert-info alert-dismissible fade show mb-2" role="alert" 
-                 style="position: fixed; top: 70px; right: 20px; z-index: 9999; max-width: 300px;">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-bell-fill me-2"></i>
-                    <div>
-                        <strong>${count} nueva(s) solicitud(es)</strong>
-                        <div class="small mt-1">
-                            ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-                </div>
-            </div>
-        `;
-        
-        $('.alert[role="alert"]').remove();
-        
-        $('#notificationContainer').prepend(notificationHtml);
-        
-        setTimeout(() => {
-            $('.alert').alert('close');
-        }, 4000);
-    }
-    
+
     function reinitializeButtonEvents() {
         $('.btn-asignar').off('click').on('click', function() {
             const ticketId = $(this).data('ticket-id');
@@ -567,6 +686,16 @@ $(document).ready(function() {
         }
         
         reinitializeButtonEvents();
+        
+        // ============ INICIALIZAR NOTIFICACIONES POR ROLES ============
+        
+        // Pasar permisos del usuario a JavaScript
+        window.userPermissions = @json(auth()->user()->getAllPermissions()->pluck('name')->toArray());
+        
+        
+        
+        // Primera verificación después de 3 segundos
+        setTimeout(checkNotifications, 3000);
     }
     
     // Inicializar el sistema de auto-refresh
@@ -659,5 +788,17 @@ $(document).ready(function() {
     .toast {
         font-size: 0.9rem;
     }
+    .notification-alert {
+    animation: slideInRight 0.3s ease-out;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-left: 4px solid;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
 </style>
 @endpush

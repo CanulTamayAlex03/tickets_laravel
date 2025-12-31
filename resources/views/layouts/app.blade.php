@@ -13,27 +13,36 @@
     <link href="{{ asset('css/select2.min.css') }}" rel="stylesheet">
 
     <style>
-        .new-tickets-badge {
-            position: absolute;
-            top: 5px;
-            right: 15px;
-            background: #dc3545;
-            color: white;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
+    .new-tickets-badge {
+        position: absolute;
+        top: 5px;
+        right: 15px;
+        color: white;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse 2s infinite;
+        cursor: pointer;
+    }
+    
+    #newTicketsBadge {
+        background: #dc3545;
+    }
+    
+    #assignedTicketsBadge {
+        background: #ffc107;
+        color: #000;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
         
         .nav-item {
             position: relative;
@@ -201,8 +210,15 @@
                 <li class="nav-item" id="admin-tickets-menu-item">
                     <a class="nav-link text-white @if(Request::is('admin/admin_solicitudes')) active @endif" href="{{ route('admin.admin_solicitudes') }}">
                         <i class="bi bi-ticket-detailed me-2"></i> Administrar Solicitudes
+
+                        {{-- BADGE PARA AMBOS ROLES --}}
                         <span id="newTicketsBadge" class="new-tickets-badge" style="display: none;">
                             <span id="newTicketsCount">0</span>
+                        </span>
+
+                        {{-- BADGE ESPECÍFICO PARA SOPORTE (opcional, si quieres diferenciar) --}}
+                        <span id="assignedTicketsBadge" class="new-tickets-badge" style="display: none; background: #ffc107;">
+                            <span id="assignedTicketsCount">0</span>
                         </span>
                     </a>
                 </li>
@@ -299,15 +315,15 @@ $(document).ready(function() {
     const hasTicketPermission = {{ auth()->check() && auth()->user()->can('ver tickets') ? 'true' : 'false' }};
     if (!hasTicketPermission) return;
     
+    @auth
+    const userPermissions = @json(auth()->user()->getAllPermissions()->pluck('name')->toArray());
+    const isSupport = userPermissions.includes('notificaciones tickets asignados');
+    const isAdmin = userPermissions.includes('notificaciones tickets nuevos');
+    @endauth
+    
     let lastTicketCount = 0;
-    let originalTitle = document.title;
+    let originalTitle = document.title.replace(/^\(\d+\)\s*/, '');
     
-    // Verificar si estamos en Admin Solicitudes
-    function isAdminSolicitudesPage() {
-        return window.location.pathname.includes('/admin/admin_solicitudes');
-    }
-    
-    // Actualizar título con contador
     function updateTitle(count) {
         if (count > 0) {
             document.title = `(${count}) ${originalTitle}`;
@@ -316,65 +332,54 @@ $(document).ready(function() {
         }
     }
     
-    // Restaurar título original
     function restoreTitle() {
         document.title = originalTitle;
     }
     
-    // Guardar título original al cargar
-    originalTitle = document.title.replace(/^\(\d+\)\s*/, '');
-    
-    // Notificación mínima
-    function showMinimalNotification(count) {
-        if (!isAdminSolicitudesPage()) return;
+    function checkNotifications() {
+        let url = '';
+        let badgeType = '';
         
-        const notificationHtml = `
-            <div class="alert alert-info alert-dismissible fade show mb-2" role="alert" 
-                 style="position: fixed; top: 70px; right: 20px; z-index: 9999; max-width: 300px;">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-bell-fill me-2"></i>
-                    <div>
-                        <strong>${count} nueva(s) solicitud(es)</strong>
-                        <div class="small mt-1">
-                            ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-                </div>
-            </div>
-        `;
+        if (isAdmin) {
+            url = '{{ route("admin.notifications.new-tickets-count") }}';
+            badgeType = 'admin';
+        } else if (isSupport) {
+            url = '{{ route("admin.notifications.assigned-count") }}';
+            badgeType = 'support';
+        } else {
+            return;
+        }
         
-        $('#notificationContainer').prepend(notificationHtml);
-        
-        setTimeout(() => {
-            $('.alert').alert('close');
-        }, 4000);
-    }
-    
-    function checkNewTickets() {
         $.ajax({
-            url: '{{ route("admin.new_tickets_count") }}',
+            url: url,
             type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
             success: function(response) {
                 if (response.success) {
                     const currentCount = response.count || 0;
                     
-                    if (currentCount !== lastTicketCount) {
-                        updateTitle(currentCount);
-                        
-                        if (currentCount > lastTicketCount && isAdminSolicitudesPage()) {
-                            const newTickets = currentCount - lastTicketCount;
-                            showMinimalNotification(newTickets);
-                        }
-                    }
+                    updateTitle(currentCount);
                     
-                    const badge = $('#newTicketsBadge');
-                    const countSpan = $('#newTicketsCount');
-                    if (currentCount > 0) {
-                        countSpan.text(currentCount);
-                        badge.show();
-                    } else {
-                        badge.hide();
+                    if (badgeType === 'admin') {
+                        const badge = $('#newTicketsBadge');
+                        const countSpan = $('#newTicketsCount');
+                        if (currentCount > 0) {
+                            countSpan.text(currentCount);
+                            badge.show();
+                            $('#assignedTicketsBadge').hide();
+                        } else {
+                            badge.hide();
+                        }
+                    } else if (badgeType === 'support') {
+                        const badge = $('#assignedTicketsBadge');
+                        const countSpan = $('#assignedTicketsCount');
+                        if (currentCount > 0) {
+                            countSpan.text(currentCount);
+                            badge.show();
+                            $('#newTicketsBadge').hide();
+                        } else {
+                            badge.hide();
+                        }
                     }
                     
                     lastTicketCount = currentCount;
@@ -382,17 +387,25 @@ $(document).ready(function() {
             },
             error: function() {
                 restoreTitle();
+                $('#newTicketsBadge').hide();
+                $('#assignedTicketsBadge').hide();
             }
         });
     }
     
     setTimeout(function() {
-        checkNewTickets();
-        setInterval(checkNewTickets, 15000);
+        checkNotifications();
+        setInterval(checkNotifications, 15000);
         
-        $('#newTicketsBadge').click(function(e) {
+        $('#newTicketsBadge, #assignedTicketsBadge').click(function(e) {
             e.preventDefault();
-            window.location.href = '{{ route("admin.admin_solicitudes") }}?status=nuevo';
+            e.stopPropagation();
+            
+            if (isAdmin) {
+                window.location.href = '{{ route("admin.admin_solicitudes") }}?status=nuevo';
+            } else if (isSupport) {
+                window.location.href = '{{ route("admin.admin_solicitudes") }}?status=atendiendo';
+            }
         });
         
         $(window).on('beforeunload', function() {

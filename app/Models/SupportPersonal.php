@@ -15,6 +15,7 @@ class SupportPersonal extends Model
     protected $fillable = [
         'name',
         'lastnames',
+        'email',
         'active'
     ];
 
@@ -23,4 +24,24 @@ class SupportPersonal extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
     ];
+
+    public function user()
+    {
+        return User::where('email', $this->email)->first();
+    }
+
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class, 'support_personal_id');
+    }
+
+    public function getFullNameAttribute()
+    {
+        return $this->name . ' ' . $this->lastnames;
+    }
+
+    public function hasUserAccount()
+    {
+        return !is_null($this->user());
+    }
 }

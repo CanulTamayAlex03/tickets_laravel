@@ -41,6 +41,10 @@ class PermissionSeeder extends Seeder
         $this->createPermissionIfNotExists('gestionar roles');
         $this->createPermissionIfNotExists('acceso administrador');
 
+        // ================== PERMISOS PARA NOTIFICACIONES ==================
+        $this->createPermissionIfNotExists('notificaciones tickets nuevos');
+        $this->createPermissionIfNotExists('notificaciones tickets asignados');
+
         // ================== CREAR ROLES EN MINÚSCULA ==================
         $superadmin = $this->createRoleIfNotExists('superadmin');
         $informatica = $this->createRoleIfNotExists('informatica');
@@ -58,7 +62,7 @@ class PermissionSeeder extends Seeder
             'ver tickets', 'crear tickets', 'editar tickets', 'gestionar tickets',
             'ver usuarios', 'crear usuarios', 'editar usuarios',
             'ver reportes', 'generar reportes', 'exportar reportes',
-            'acceso administrador'
+            'acceso administrador', 'notificaciones tickets asignados'
         ]);
 
         // admin - Permisos administrativos
@@ -66,7 +70,7 @@ class PermissionSeeder extends Seeder
             'ver tickets', 'crear tickets', 'editar tickets', 'gestionar tickets',
             'ver usuarios', 'crear usuarios', 'editar usuarios',
             'ver reportes', 'generar reportes',
-            'acceso administrador'
+            'acceso administrador', 'notificaciones tickets nuevos'
         ]);
 
         // ati - Permisos de soporte técnico
