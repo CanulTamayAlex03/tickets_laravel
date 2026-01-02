@@ -12,6 +12,9 @@
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <link href="{{ asset('css/select2.min.css') }}" rel="stylesheet">
 
+    <link rel="shortcut icon" href="{{ asset('images/raton.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('images/raton.png') }}" type="image/png">
+
     <style>
     .new-tickets-badge {
         position: absolute;
