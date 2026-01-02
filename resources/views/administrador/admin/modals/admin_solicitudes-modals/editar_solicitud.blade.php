@@ -143,7 +143,7 @@
 
                                     <div class="col-md-6">
                                         <label for="edit_another_service_id" class="form-label fw-bold small">Servicio:</label>
-                                        <select class="form-select form-select-sm" id="edit_another_service_id" name="another_service_id" disabled required>
+                                        <select class="form-select form-select-sm" id="edit_another_service_id" name="another_service_id" disabled>
                                             <option value="">Primero seleccione un indicador</option>
                                         </select>
                                     </div>
