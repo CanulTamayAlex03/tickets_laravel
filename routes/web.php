@@ -10,6 +10,9 @@ use App\Http\Controllers\MisSolicitudesController;
 use App\Http\Controllers\TicketLiberacionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\BuildingController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\EmployeeController;
 
 Route::get('/', function () {
     $buildings = App\Models\Building::orderBy('description')->get();
@@ -56,27 +59,27 @@ Route::prefix('admin')->middleware(['auth', 'permission:acceso administrador'])-
 
     Route::get('/solicitudes/servicios-por-indicador/{indicatorId}', [TicketController::class, 'getServicesByIndicator'])
         ->name('admin.solicitudes.servicios-por-indicador');
-        
+
     Route::post('/solicitudes/{id}/agregar-seguimiento', [TicketController::class, 'agregarSeguimiento'])
-    ->name('admin.solicitudes.agregar-seguimiento')
-    ->middleware('permission:editar tickets');
-    
+        ->name('admin.solicitudes.agregar-seguimiento')
+        ->middleware('permission:editar tickets');
+
     // Ruta para verificar nuevas solicitudes
     Route::get('/admin/tickets/check-new', [TicketController::class, 'checkNewTickets'])
-    ->name('admin.tickets.check_new')
-    ->middleware('auth');
+        ->name('admin.tickets.check_new')
+        ->middleware('auth');
 
     Route::get('/admin/notifications/new-tickets-count', [TicketController::class, 'getNewTicketsCount'])
-    ->name('admin.notifications.new-tickets-count')
-    ->middleware(['auth', 'permission:notificaciones tickets nuevos']);
+        ->name('admin.notifications.new-tickets-count')
+        ->middleware(['auth', 'permission:notificaciones tickets nuevos']);
 
     Route::get('/admin/new-tickets-count', [TicketController::class, 'getNewTicketsCount'])
-    ->name('admin.new_tickets_count')
-    ->middleware(['auth', 'can:ver tickets']);
+        ->name('admin.new_tickets_count')
+        ->middleware(['auth', 'can:ver tickets']);
 
     Route::get('/notifications/assigned-count', [NotificationController::class, 'getAssignedTicketsCount'])
-    ->name('admin.notifications.assigned-count')
-    ->middleware(['auth', 'permission:acceso administrador']);
+        ->name('admin.notifications.assigned-count')
+        ->middleware(['auth', 'permission:acceso administrador']);
 
     // Gestión de usuarios
     Route::get('/usuarios', [UserController::class, 'index'])
@@ -108,13 +111,57 @@ Route::prefix('admin')->middleware(['auth', 'permission:acceso administrador'])-
 
     // Reportes
     Route::get('/reportes', [ReportController::class, 'index'])
-    ->name('admin.reportes')
-    ->middleware('permission:ver reportes');
+        ->name('admin.reportes')
+        ->middleware('permission:ver reportes');
 
     Route::post('/reportes/exportar', [ReportController::class, 'export'])
         ->name('admin.reportes.export')
         ->middleware('permission:ver reportes');
 
+    // Edificios
+    Route::prefix('edificios')->group(function () {
+        Route::get('/', [BuildingController::class, 'index'])
+            ->name('admin.edificios')->middleware('permission:ver edificios');
+
+        Route::post('/', [BuildingController::class, 'store'])
+            ->name('admin.edificios.store')->middleware('permission:crear edificios');
+
+        Route::get('/{id}/edit', [BuildingController::class, 'edit'])
+            ->name('admin.edificios.edit')->middleware('permission:editar edificios');
+
+        Route::put('/{id}', [BuildingController::class, 'update'])
+            ->name('admin.edificios.update')->middleware('permission:editar edificios');
+    });
+
+    // Departamentos
+    Route::prefix('departamentos')->group(function () {
+        Route::get('/', [DepartmentController::class, 'index'])
+            ->name('admin.departamentos')->middleware('permission:ver departamentos');
+
+        Route::post('/', [DepartmentController::class, 'store'])
+            ->name('admin.departamentos.store')->middleware('permission:crear departamentos');
+
+        Route::get('/{id}/edit', [DepartmentController::class, 'edit'])
+            ->name('admin.departamentos.edit')->middleware('permission:editar departamentos');
+
+        Route::put('/{id}', [DepartmentController::class, 'update'])
+            ->name('admin.departamentos.update')->middleware('permission:editar departamentos');
+    });
+
+    // Empleados
+    Route::prefix('empleados')->group(function () {
+        Route::get('/', [EmployeeController::class, 'index'])
+            ->name('admin.empleados')->middleware('permission:ver empleados');
+
+        Route::post('/', [EmployeeController::class, 'store'])
+            ->name('admin.empleados.store')->middleware('permission:crear empleados');
+
+        Route::get('/{id}/edit', [EmployeeController::class, 'edit'])
+            ->name('admin.empleados.edit')->middleware('permission:editar empleados');
+
+        Route::put('/{id}', [EmployeeController::class, 'update'])
+            ->name('admin.empleados.update')->middleware('permission:editar empleados');
+    });
 
     // ================== RUTAS EXCLUSIVAS PARA SUPERADMIN ==================
     Route::prefix('gestion-permisos')->middleware(['role:superadmin'])->group(function () {

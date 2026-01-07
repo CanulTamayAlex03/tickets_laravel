@@ -30,9 +30,15 @@ class TicketsExport implements FromCollection, WithHeadings, WithMapping, WithSt
     public function collection()
     {
         $query = Ticket::with([
-            'building',
-            'department', 
-            'employee',
+            'building' => function ($query) {
+                $query->withTrashed();
+            },
+            'department' => function ($query) {
+                $query->withTrashed();
+            }, 
+            'employee' => function ($query) {
+                $query->withTrashed();
+            },
             'serviceStatus',
             'supportPersonal',
             'extraInfos',

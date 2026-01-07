@@ -36,6 +36,24 @@ class PermissionSeeder extends Seeder
         $this->createPermissionIfNotExists('generar reportes');
         $this->createPermissionIfNotExists('exportar reportes');
 
+        // ================== PERMISOS PARA EDIFICIOS ==================
+        $this->createPermissionIfNotExists('ver edificios');
+        $this->createPermissionIfNotExists('crear edificios');
+        $this->createPermissionIfNotExists('editar edificios');
+        $this->createPermissionIfNotExists('eliminar edificios');
+
+        // ================== PERMISOS PARA DEPARTAMENTOS ==================
+        $this->createPermissionIfNotExists('ver departamentos');
+        $this->createPermissionIfNotExists('crear departamentos');
+        $this->createPermissionIfNotExists('editar departamentos');
+        $this->createPermissionIfNotExists('eliminar departamentos');
+
+        // ================== PERMISOS PARA EMPLEADOS ==================
+        $this->createPermissionIfNotExists('ver empleados');
+        $this->createPermissionIfNotExists('crear empleados');
+        $this->createPermissionIfNotExists('editar empleados');
+        $this->createPermissionIfNotExists('eliminar empleados');
+
         // ================== PERMISOS ADMINISTRATIVOS ==================
         $this->createPermissionIfNotExists('gestionar permisos');
         $this->createPermissionIfNotExists('gestionar roles');
@@ -70,7 +88,10 @@ class PermissionSeeder extends Seeder
             'ver tickets', 'crear tickets', 'editar tickets', 'gestionar tickets',
             'ver usuarios', 'crear usuarios', 'editar usuarios',
             'ver reportes', 'generar reportes',
-            'acceso administrador', 'notificaciones tickets nuevos'
+            'acceso administrador', 'notificaciones tickets nuevos', 'editar personal soporte',
+            'ver edificios', 'crear edificios', 'editar edificios', 'eliminar edificios',
+            'ver departamentos', 'crear departamentos', 'editar departamentos', 'eliminar departamentos',
+            'ver empleados', 'crear empleados', 'editar empleados', 'eliminar empleados'
         ]);
 
         // ati - Permisos de soporte técnico

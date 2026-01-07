@@ -243,6 +243,29 @@
                 </li>
                 @endcan
 
+                @can('ver edificios')
+                <li class="nav-item">
+                    <a class="nav-link text-white @if(Request::is('admin/edificios*')) active @endif" href="{{ route('admin.edificios') }}">
+                        <i class="bi bi-building me-2"></i> Edificios
+                    </a>
+                </li>
+                @endcan
+                @can('ver departamentos')
+                <li class="nav-item">
+                    <a class="nav-link text-white @if(Request::is('admin/departamentos*')) active @endif" href="{{ route('admin.departamentos') }}">
+                        <i class="bi bi-diagram-3 me-2"></i> Departamentos
+                    </a>
+                </li>
+                @endcan
+
+                @can('ver empleados')
+                <li class="nav-item">
+                    <a class="nav-link text-white @if(Request::is('admin/empleados*')) active @endif" href="{{ route('admin.empleados') }}">
+                        <i class="bi bi-person-badge me-2"></i> Empleados
+                    </a>
+                </li>
+                @endcan
+
                 @can('ver reportes')
                 <li class="nav-item">
                     <a class="nav-link text-white @if(Request::is('admin/reportes')) active @endif" href="{{ route('admin.reportes') }}">
@@ -423,7 +446,6 @@ $(document).ready(function() {
     }, 2000);
 });
 </script>
-    
     @yield('scripts')
 </body>
 </html>

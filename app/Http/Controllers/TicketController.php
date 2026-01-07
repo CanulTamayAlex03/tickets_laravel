@@ -20,8 +20,23 @@ class TicketController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Ticket::with(['building', 'department', 'employee', 'serviceStatus', 'supportPersonal', 'extraInfos.user', 'indicatorType', 'anotherService', 'equipment']);
-
+        $query = Ticket::with([
+            'building' => function ($query) {
+                $query->withTrashed();
+            }, 
+            'department' => function ($query) {
+                $query->withTrashed();
+            }, 
+            'employee' => function ($query) {
+                $query->withTrashed();
+            }, 
+            'serviceStatus', 
+            'supportPersonal', 
+            'extraInfos.user', 
+            'indicatorType', 
+            'anotherService', 
+            'equipment'
+        ]);
         $employees = Employee::orderBy('full_name')->get();
         $buildings = Building::orderBy('description')->get();
         $departments = Department::orderBy('description')->get();

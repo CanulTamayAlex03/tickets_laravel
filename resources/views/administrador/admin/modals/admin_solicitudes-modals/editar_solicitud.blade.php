@@ -17,16 +17,34 @@
                         <div class="col-md-6">
                             <h6 class="fw-bold border-bottom pb-2 mb-3 text-dark">
                                 <i class="bi bi-info-circle me-2"></i>Información de la Solicitud
-                            </h6>
-                            
+                            </h6>                           
                             <div class="mb-3">
                                 <label class="form-label fw-bold small mb-1">Asignado a:</label>
-                                <div class="bg-light p-2 rounded small" id="edit_support_personal_display">
-                                    <span id="edit_support_personal_name">No asignado</span>
-                                </div>
-                                <input type="hidden" id="edit_support_personal_id" name="support_personal_id">
-                            </div>
+                                @php
+                                    $puedeEditarPersonal = auth()->user()->can('editar personal soporte');
+                                @endphp
 
+                                @if($puedeEditarPersonal)
+                                    <div class="editable-version">
+                                        <select class="form-select form-select-sm" id="edit_support_personal_id" name="support_personal_id">
+                                            <option value="">Sin asignar</option>
+                                            @foreach($supportPersonals as $personal)
+                                                <option value="{{ $personal->id }}">
+                                                    {{ $personal->name }} {{ $personal->lastnames }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @else
+                                    <div class="readonly-version">
+                                        <div class="bg-light p-2 rounded small d-flex justify-content-between align-items-center" 
+                                             style="min-height: 36px;">
+                                            <span id="edit_support_personal_name">No asignado</span>
+                                        </div>
+                                        <input type="hidden" id="edit_support_personal_id" name="support_personal_id">
+                                    </div>
+                                @endif
+                            </div>
                             <div class="row g-2 mb-2">
                                 <div class="col-12">
                                     <label class="form-label fw-bold small mb-1">Solicita:</label>
