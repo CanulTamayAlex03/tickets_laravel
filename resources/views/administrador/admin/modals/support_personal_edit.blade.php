@@ -17,6 +17,10 @@
                         <label for="edit_lastnames" class="form-label">Apellidos</label>
                         <input type="text" class="form-control" id="edit_lastnames" name="lastnames" required>
                     </div>
+                    <div class="mb-3">
+                        <label for="edit_email" class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="edit_email" name="email" required>
+                    </div>
                     <div class="mb-3 form-check form-switch">
                         <input type="hidden" name="active" value="0">
                         <input type="checkbox" class="form-check-input" id="edit_active" name="active" value="1">

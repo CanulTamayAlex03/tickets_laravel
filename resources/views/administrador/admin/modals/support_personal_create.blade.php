@@ -16,6 +16,10 @@
                         <label for="lastnames" class="form-label">Apellidos</label>
                         <input type="text" class="form-control" id="lastnames" name="lastnames" required>
                     </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>

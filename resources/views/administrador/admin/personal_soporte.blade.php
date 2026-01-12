@@ -20,7 +20,7 @@
                         <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
                         <input type="text"
                             class="form-control"
-                            placeholder="Filtrar por nombre/apellido..."
+                            placeholder="Filtrar por nombre/apellido/email..."
                             name="search"
                             value="{{ request('search') }}">
                         <button class="btn btn-primary" type="submit">Filtrar</button>
@@ -40,11 +40,12 @@
                 <table class="table table-sm table-striped table-hover mb-2 mx-auto" style="width: 90%; margin-top: 15px">
                     <thead class="table-dark">
                         <tr>
-                            <th width="10%">ID</th>
-                            <th>Nombre</th>
-                            <th>Apellidos</th>
-                            <th>Estado</th>
-                            <th width="25%" class="text-start">Acciones</th>
+                            <th width="5%">ID</th>
+                            <th width="20%">Nombre</th>
+                            <th width="20%">Apellidos</th>
+                            <th width="25%">Email</th>
+                            <th width="10%">Estado</th>
+                            <th width="20%" class="text-start">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -53,6 +54,9 @@
                             <td>{{ $personal->id }}</td>
                             <td>{{ $personal->name }}</td>
                             <td>{{ $personal->lastnames }}</td>
+                            <td>
+                                <small>{{ $personal->email }}</small>
+                            </td>
                             <td>
                                 <span class="badge rounded-pill {{ $personal->active ? 'bg-success' : 'bg-danger' }}">
                                     {{ $personal->active ? 'Activo' : 'Inactivo' }}
@@ -65,6 +69,7 @@
                                         data-id="{{ $personal->id }}"
                                         data-name="{{ $personal->name }}"
                                         data-lastnames="{{ $personal->lastnames }}"
+                                        data-email="{{ $personal->email }}"
                                         data-active="{{ $personal->active }}">
                                         <i class="bi bi-pencil-square"></i>
                                     </button>

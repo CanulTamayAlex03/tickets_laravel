@@ -21,7 +21,8 @@ class SupportPersonalController extends Controller
 
         $supportPersonals = SupportPersonal::when($search, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%")
-                ->orWhere('lastnames', 'like', "%{$search}%");
+                ->orWhere('lastnames', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
         })
             ->orderBy('active', 'DESC')
             ->orderBy('id', 'ASC')
@@ -35,6 +36,7 @@ class SupportPersonalController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'lastnames' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:support_personals,email',
             'active' => 'sometimes|boolean'
         ]);
 
@@ -48,6 +50,7 @@ class SupportPersonalController extends Controller
         SupportPersonal::create([
             'name' => $request->name,
             'lastnames' => $request->lastnames,
+            'email' => $request->email,
             'active' => $request->active ?? 1
         ]);
 
@@ -62,10 +65,17 @@ class SupportPersonalController extends Controller
 
     public function update(Request $request, $id)
     {
+        $personal = SupportPersonal::findOrFail($id);
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'lastnames' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:support_personals,email,' . $id,
             'active' => 'sometimes|boolean'
+        ], [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El formato del correo electrónico no es válido.',
+            'email.unique' => 'Este correo electrónico ya está registrado.',
         ]);
 
         if ($validator->fails()) {
@@ -75,10 +85,10 @@ class SupportPersonalController extends Controller
                 ->withInput();
         }
 
-        $personal = SupportPersonal::findOrFail($id);
         $personal->update([
             'name' => $request->name,
             'lastnames' => $request->lastnames,
+            'email' => $request->email,
             'active' => $request->active ?? $personal->active
         ]);
 
