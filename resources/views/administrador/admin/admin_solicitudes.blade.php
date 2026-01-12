@@ -245,6 +245,7 @@ $(document).ready(function() {
     let currentTicketCount = {{ $tickets->total() }};
     let lastTimestamp = '{{ now()->toISOString() }}';
     
+    
     // ============ FUNCIONES PARA NOTIFICACIONES ============
     
     function checkNotifications() {
@@ -288,19 +289,16 @@ $(document).ready(function() {
                 }
             },
             error: function() {
-                // Silenciar error
             }
         });
     }
     
     function showAdminNotification(count) {
-        // Verificar si ya hay una notificación similar visible
         const existingNotification = $('#notificationContainer').find('.alert-primary').filter(function() {
             return $(this).text().includes('Nuevos Tickets');
         });
         
         if (existingNotification.length > 0) {
-            // Actualizar conteo en notificación existente
             existingNotification.find('.small').html(`Tienes ${count} nuevo(s) ticket(s) por asignar`);
             existingNotification.find('.text-muted').html(`
                 <i class="bi bi-clock me-1"></i>
@@ -802,3 +800,4 @@ $(document).ready(function() {
 }
 </style>
 @endpush
+

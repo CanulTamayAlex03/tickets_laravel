@@ -21,7 +21,7 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold small mb-1">Asignado a:</label>
                                 @php
-                                    $puedeEditarPersonal = auth()->user()->can('editar personal soporte');
+                                    $puedeEditarPersonal = auth()->user()->can('asignar tickets');
                                 @endphp
 
                                 @if($puedeEditarPersonal)

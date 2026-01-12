@@ -348,6 +348,7 @@ $(document).ready(function() {
     @endauth
     
     let lastTicketCount = 0;
+    let lastAssignedCount = 0;
     let originalTitle = document.title.replace(/^\(\d+\)\s*/, '');
     
     function updateTitle(count) {
@@ -360,6 +361,48 @@ $(document).ready(function() {
     
     function restoreTitle() {
         document.title = originalTitle;
+    }
+    
+    function playNotificationSound(type = 'notification') {
+        
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const context = new AudioContext();
+            
+            const oscillator = context.createOscillator();
+            const gainNode = context.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(context.destination);
+            
+            let frequency = 440;
+            if (type === 'new-ticket') frequency = 523.25;
+            if (type === 'assigned-ticket') frequency = 659.25;
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            const now = context.currentTime;
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            
+            oscillator.start(now);
+            oscillator.stop(now + 0.5);
+            
+            setTimeout(() => {
+                oscillator.disconnect();
+                gainNode.disconnect();
+                context.close();
+            }, 600);
+                        
+        } catch (error) {
+            console.error('❌ Error reproduciendo sonido:', error);
+            
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
+            }
+        }
     }
     
     function checkNotifications() {
@@ -383,6 +426,23 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     const currentCount = response.count || 0;
+                    const previousCount = badgeType === 'admin' ? lastTicketCount : lastAssignedCount;
+                    
+                    console.log(`Conteo anterior: ${previousCount}, actual: ${currentCount}`);
+                    
+                    if (currentCount > previousCount) {
+                        console.log(`🎉 ¡Nuevos tickets detectados! Incremento: ${currentCount - previousCount}`);
+                        
+                        if (badgeType === 'admin') {
+                            playNotificationSound('new-ticket');
+                        } else if (badgeType === 'support') {
+                            playNotificationSound('assigned-ticket');
+                        }
+                        
+                        if (document.hidden) {
+                            showBrowserNotification(badgeType, currentCount - previousCount);
+                        }
+                    }
                     
                     updateTitle(currentCount);
                     
@@ -396,6 +456,7 @@ $(document).ready(function() {
                         } else {
                             badge.hide();
                         }
+                        lastTicketCount = currentCount;
                     } else if (badgeType === 'support') {
                         const badge = $('#assignedTicketsBadge');
                         const countSpan = $('#assignedTicketsCount');
@@ -406,9 +467,8 @@ $(document).ready(function() {
                         } else {
                             badge.hide();
                         }
+                        lastAssignedCount = currentCount;
                     }
-                    
-                    lastTicketCount = currentCount;
                 }
             },
             error: function() {
@@ -419,9 +479,48 @@ $(document).ready(function() {
         });
     }
     
+    function showBrowserNotification(type, count) {
+        if (!("Notification" in window)) return;
+        
+        if (Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+        
+        if (Notification.permission === "granted") {
+            let title, body;
+            
+            if (type === 'admin') {
+                title = '🎫 Nuevo Ticket';
+                body = `Tienes ${count} nuevo(s) ticket(s)`;
+            } else {
+                title = '👨‍💻 Ticket Asignado';
+                body = `Se te ha asignado ${count} nuevo(s) ticket(s)`;
+            }
+            
+            const notification = new Notification(title, {
+                body: body,
+                icon: '{{ asset("images/raton.png") }}',
+                tag: 'ticket-notification'
+            });
+            
+            notification.onclick = function() {
+                window.focus();
+                if (type === 'admin') {
+                    window.location.href = '{{ route("admin.admin_solicitudes") }}?status=nuevo';
+                } else {
+                    window.location.href = '{{ route("admin.admin_solicitudes") }}?status=atendiendo';
+                }
+                notification.close();
+            };
+            
+            setTimeout(() => notification.close(), 5000);
+        }
+    }
+    
     setTimeout(function() {
         checkNotifications();
-        setInterval(checkNotifications, 15000);
+        
+        const pollInterval = setInterval(checkNotifications, 15000);
         
         $('#newTicketsBadge, #assignedTicketsBadge').click(function(e) {
             e.preventDefault();
@@ -434,15 +533,21 @@ $(document).ready(function() {
             }
         });
         
+        $(document).one('click', function() {
+        });
+        
+        setTimeout(() => {
+            if (!document.querySelector(':active')) {
+                console.log('Simulando interacción inicial...');
+                $(document).click();
+            }
+        }, 1000);
+        
         $(window).on('beforeunload', function() {
+            clearInterval(pollInterval);
             restoreTitle();
         });
         
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'visible') {
-                updateTitle(lastTicketCount);
-            }
-        });
     }, 2000);
 });
 </script>
