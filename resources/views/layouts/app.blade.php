@@ -306,51 +306,43 @@
         <div style="height: 56px;"></div>
         @yield('content')
     </div>
+<audio id="audioNuevo" preload="none" style="display: none;">
+<source src="{{ asset('audios/audio_nuevos.mp3') }}" type="audio/mpeg">
+</audio>
+<audio id="audioAsignado" preload="none" style="display: none;">
+    <source src="{{ asset('audios/audio_asignado.mp3') }}" type="audio/mpeg">
+</audio>
 
     <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('js/app.js') }}"></script>
     <script src="{{ asset('js/select2.min.js') }}"></script>
     <script src="{{ asset('js/es.js') }}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('mainContent');
-        const topNavbar = document.querySelector('.top-navbar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('sidebar-collapsed');
-            mainContent.classList.toggle('content-collapsed');
-            topNavbar.classList.toggle('navbar-collapsed');
-            const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
-            localStorage.setItem('sidebarCollapsed', isCollapsed);
-        });
-
-        if (localStorage.getItem('sidebarCollapsed') === 'true') {
-            sidebar.classList.add('sidebar-collapsed');
-            mainContent.classList.add('content-collapsed');
-            topNavbar.classList.add('navbar-collapsed');
-        }
-
-        if (window.innerWidth <= 768) {
-            document.querySelector('.main-content').style.paddingTop = '76px';
-        }
-    });
-    
 $(document).ready(function() {
     const hasTicketPermission = {{ auth()->check() && auth()->user()->can('ver tickets') ? 'true' : 'false' }};
     if (!hasTicketPermission) return;
-    
+
     @auth
     const userPermissions = @json(auth()->user()->getAllPermissions()->pluck('name')->toArray());
     const isSupport = userPermissions.includes('notificaciones tickets asignados');
     const isAdmin = userPermissions.includes('notificaciones tickets nuevos');
     @endauth
-    
+
     let lastTicketCount = 0;
     let lastAssignedCount = 0;
     let originalTitle = document.title.replace(/^\(\d+\)\s*/, '');
-    
+
+    // 🔊 Activar audio tras primer click
+    $(document).one('click', function() {
+        try {
+            const audioNuevo = document.getElementById('audioNuevo');
+            const audioAsignado = document.getElementById('audioAsignado');
+            if (audioNuevo) audioNuevo.load();
+            if (audioAsignado) audioAsignado.load();
+            console.log('🔊 Audios activados');
+        } catch (e) {}
+    });
+
     function updateTitle(count) {
         if (count > 0) {
             document.title = `(${count}) ${originalTitle}`;
@@ -358,137 +350,35 @@ $(document).ready(function() {
             document.title = originalTitle;
         }
     }
-    
+
     function restoreTitle() {
         document.title = originalTitle;
     }
-    
-    function playNotificationSound(type = 'notification') {
-        
+
+    function playMp3Sound(type) {
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            const context = new AudioContext();
-            
-            const oscillator = context.createOscillator();
-            const gainNode = context.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(context.destination);
-            
-            let frequency = 440;
-            if (type === 'new-ticket') frequency = 523.25;
-            if (type === 'assigned-ticket') frequency = 659.25;
-            
-            oscillator.frequency.value = frequency;
-            oscillator.type = 'sine';
-            
-            const now = context.currentTime;
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.1);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-            
-            oscillator.start(now);
-            oscillator.stop(now + 0.5);
-            
-            setTimeout(() => {
-                oscillator.disconnect();
-                gainNode.disconnect();
-                context.close();
-            }, 600);
-                        
-        } catch (error) {
-            console.error('❌ Error reproduciendo sonido:', error);
-            
-            if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200]);
+            const audioElement = type === 'admin' 
+                ? document.getElementById('audioNuevo') 
+                : document.getElementById('audioAsignado');
+
+            if (audioElement) {
+                audioElement.currentTime = 0;
+                audioElement.volume = 0.8;
+                audioElement.play().catch(() => {});
             }
-        }
+        } catch (e) {}
     }
-    
-    function checkNotifications() {
-        let url = '';
-        let badgeType = '';
-        
-        if (isAdmin) {
-            url = '{{ route("admin.notifications.new-tickets-count") }}';
-            badgeType = 'admin';
-        } else if (isSupport) {
-            url = '{{ route("admin.notifications.assigned-count") }}';
-            badgeType = 'support';
-        } else {
-            return;
-        }
-        
-        $.ajax({
-            url: url,
-            type: 'GET',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            success: function(response) {
-                if (response.success) {
-                    const currentCount = response.count || 0;
-                    const previousCount = badgeType === 'admin' ? lastTicketCount : lastAssignedCount;
-                    
-                    console.log(`Conteo anterior: ${previousCount}, actual: ${currentCount}`);
-                    
-                    if (currentCount > previousCount) {
-                        console.log(`🎉 ¡Nuevos tickets detectados! Incremento: ${currentCount - previousCount}`);
-                        
-                        if (badgeType === 'admin') {
-                            playNotificationSound('new-ticket');
-                        } else if (badgeType === 'support') {
-                            playNotificationSound('assigned-ticket');
-                        }
-                        
-                        if (document.hidden) {
-                            showBrowserNotification(badgeType, currentCount - previousCount);
-                        }
-                    }
-                    
-                    updateTitle(currentCount);
-                    
-                    if (badgeType === 'admin') {
-                        const badge = $('#newTicketsBadge');
-                        const countSpan = $('#newTicketsCount');
-                        if (currentCount > 0) {
-                            countSpan.text(currentCount);
-                            badge.show();
-                            $('#assignedTicketsBadge').hide();
-                        } else {
-                            badge.hide();
-                        }
-                        lastTicketCount = currentCount;
-                    } else if (badgeType === 'support') {
-                        const badge = $('#assignedTicketsBadge');
-                        const countSpan = $('#assignedTicketsCount');
-                        if (currentCount > 0) {
-                            countSpan.text(currentCount);
-                            badge.show();
-                            $('#newTicketsBadge').hide();
-                        } else {
-                            badge.hide();
-                        }
-                        lastAssignedCount = currentCount;
-                    }
-                }
-            },
-            error: function() {
-                restoreTitle();
-                $('#newTicketsBadge').hide();
-                $('#assignedTicketsBadge').hide();
-            }
-        });
-    }
-    
+
     function showBrowserNotification(type, count) {
         if (!("Notification" in window)) return;
-        
+
         if (Notification.permission === "default") {
             Notification.requestPermission();
         }
-        
+
         if (Notification.permission === "granted") {
             let title, body;
-            
+
             if (type === 'admin') {
                 title = '🎫 Nuevo Ticket';
                 body = `Tienes ${count} nuevo(s) ticket(s)`;
@@ -496,13 +386,13 @@ $(document).ready(function() {
                 title = '👨‍💻 Ticket Asignado';
                 body = `Se te ha asignado ${count} nuevo(s) ticket(s)`;
             }
-            
+
             const notification = new Notification(title, {
                 body: body,
                 icon: '{{ asset("images/raton.png") }}',
                 tag: 'ticket-notification'
             });
-            
+
             notification.onclick = function() {
                 window.focus();
                 if (type === 'admin') {
@@ -512,45 +402,102 @@ $(document).ready(function() {
                 }
                 notification.close();
             };
-            
-            setTimeout(() => notification.close(), 5000);
+
+            setTimeout(() => notification.close(), 6000);
         }
     }
-    
+
+    function checkNotifications() {
+        let url = '';
+        let badgeType = '';
+
+        if (isAdmin) {
+            url = '{{ route("admin.notifications.new-tickets-count") }}';
+            badgeType = 'admin';
+        } else if (isSupport) {
+            url = '{{ route("admin.notifications.assigned-count") }}';
+            badgeType = 'support';
+        } else {
+            return;
+        }
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(response) {
+                if (!response.success) return;
+
+                const currentCount = response.count || 0;
+                const previousCount = badgeType === 'admin' ? lastTicketCount : lastAssignedCount;
+
+                if (currentCount > previousCount) {
+                    const diff = currentCount - previousCount;
+
+                    playMp3Sound(badgeType);
+
+                    if (document.hidden) {
+                        showBrowserNotification(badgeType, diff);
+                    }
+                }
+
+                updateTitle(currentCount);
+
+                // 🏷️ Actualizar badges
+                if (badgeType === 'admin') {
+                    if (currentCount > 0) {
+                        $('#newTicketsCount').text(currentCount);
+                        $('#newTicketsBadge').show();
+                        $('#assignedTicketsBadge').hide();
+                    } else {
+                        $('#newTicketsBadge').hide();
+                    }
+                    lastTicketCount = currentCount;
+                } else {
+                    if (currentCount > 0) {
+                        $('#assignedTicketsCount').text(currentCount);
+                        $('#assignedTicketsBadge').show();
+                        $('#newTicketsBadge').hide();
+                    } else {
+                        $('#assignedTicketsBadge').hide();
+                    }
+                    lastAssignedCount = currentCount;
+                }
+            },
+            error: function() {
+                restoreTitle();
+                $('#newTicketsBadge').hide();
+                $('#assignedTicketsBadge').hide();
+            }
+        });
+    }
+
+    // ⏱️ Iniciar sistema
     setTimeout(function() {
         checkNotifications();
-        
         const pollInterval = setInterval(checkNotifications, 15000);
-        
+
+        // Click en badges
         $('#newTicketsBadge, #assignedTicketsBadge').click(function(e) {
             e.preventDefault();
             e.stopPropagation();
-            
             if (isAdmin) {
                 window.location.href = '{{ route("admin.admin_solicitudes") }}?status=nuevo';
             } else if (isSupport) {
                 window.location.href = '{{ route("admin.admin_solicitudes") }}?status=atendiendo';
             }
         });
-        
-        $(document).one('click', function() {
-        });
-        
-        setTimeout(() => {
-            if (!document.querySelector(':active')) {
-                console.log('Simulando interacción inicial...');
-                $(document).click();
-            }
-        }, 1000);
-        
+
+        // Limpiar al salir
         $(window).on('beforeunload', function() {
             clearInterval(pollInterval);
             restoreTitle();
         });
-        
+
     }, 2000);
 });
 </script>
+
     @yield('scripts')
 </body>
 </html>

@@ -144,58 +144,72 @@
                                         </div>
                                     </div>
                                 @else
-                                    <div class="d-flex flex-column gap-1">
-                                        
-                                        <div class="d-flex justify-content-center gap-1 mb-1">
-                                            <button class="btn btn-warning btn-sm btn-editar-ticket"
-                                                title="Editar ticket"
-                                                data-ticket-id="{{ $ticket->id }}">
-                                                <i class="bi bi-pencil-square"></i>
-                                            </button>
-                                            
-                                            @can('eliminar tickets')
-                                            <button class="btn btn-danger btn-sm btn-eliminar" 
-                                                    title="Eliminar ticket"
-                                                    data-ticket-id="{{ $ticket->id }}"
-                                                    data-ticket-data='{
-                                                        "descripcion": "{{ addslashes($ticket->description) }}",
-                                                        "usuario": "{{ addslashes($ticket->employee?->full_name ?? 'Sin usuario') }}",
-                                                        "fecha": "{{ $ticket->created_at->format('d/m/Y H:i') }}",
-                                                        "estatus": "{{ $ticket->serviceStatus->description ?? 'Sin estatus' }}"
-                                                    }'>
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                            @endcan
-                                            
-                                            <button class="btn btn-primary btn-sm btn-seguimiento" 
-                                                    title="Seguimiento"
-                                                    data-ticket-id="{{ $ticket->id }}"
-                                                    data-employee-name="{{ $ticket->employee?->full_name ? addslashes($ticket->employee->full_name) : '—' }}"
-                                                    data-description="{{ $ticket->description ? addslashes($ticket->description) : '—' }}"
-                                                    data-building="{{ $ticket->building?->description ? addslashes($ticket->building->description) : '—' }}"
-                                                    data-department="{{ $ticket->department?->description ? addslashes($ticket->department->description) : '—' }}"
-                                                    data-created-at="{{ $ticket->created_at->format('d/m/Y H:i') }}"
-                                                    data-support-name="{{ $ticket->supportPersonal ? addslashes($ticket->supportPersonal->name . ' ' . $ticket->supportPersonal->lastnames) : 'Pendiente de asignar' }}">
-                                                <i class="bi bi-chat-left-text"></i>
-                                            </button>
-                                        </div>
-                                        
-                                        <div class="text-center small">
-                                            @if($ticket->supportPersonal)
-                                                <span class="text-muted">
-                                                    <i class="bi bi-person-check me-1"></i>
-                                                    {{ $ticket->supportPersonal->name }} {{ $ticket->supportPersonal->lastnames }}
-                                                </span>
-                                            @else
-                                                <span class="text-muted">
-                                                    <i class="bi bi-clock me-1"></i>
-                                                    Pendiente de asignar
-                                                </span>
-                                            @endif
-                                        </div>
-                                        
-                                    </div>
-                                @endif
+    <div class="d-flex flex-column gap-1">
+        <div class="d-flex justify-content-center gap-1 mb-1">
+            <!-- Botón para editar ticket -->
+            <button class="btn btn-warning btn-sm btn-editar-ticket"
+                title="Editar ticket"
+                data-ticket-id="{{ $ticket->id }}">
+                <i class="bi bi-pencil-square"></i>
+            </button>
+            
+            <!-- BOTÓN DE REASIGNACIÓN NUEVO 
+            <button class="btn btn-info btn-sm btn-reasignar"
+                title="Reasignar ticket"
+                data-ticket-id="{{ $ticket->id }}"
+                data-ticket-data='{
+                    "employee_name": "{{ $ticket->employee?->full_name ?? "—" }}",
+                    "description": "{{ addslashes($ticket->description) }}",
+                    "building": "{{ $ticket->building?->description ?? "—" }}",
+                    "department": "{{ $ticket->department?->description ?? "—" }}",
+                    "created_at": "{{ $ticket->created_at->format("d/m/Y H:i") }}",
+                    "current_support": "{{ $ticket->supportPersonal ? ($ticket->supportPersonal->name . " " . $ticket->supportPersonal->lastnames) : "Sin asignar" }}"
+                }'>
+                <i class="bi bi-person-rolodex"></i>
+            </button>-->
+            
+            @can('eliminar tickets')
+            <button class="btn btn-danger btn-sm btn-eliminar" 
+                    title="Eliminar ticket"
+                    data-ticket-id="{{ $ticket->id }}"
+                    data-ticket-data='{
+                        "descripcion": "{{ addslashes($ticket->description) }}",
+                        "usuario": "{{ addslashes($ticket->employee?->full_name ?? "Sin usuario") }}",
+                        "fecha": "{{ $ticket->created_at->format("d/m/Y H:i") }}",
+                        "estatus": "{{ $ticket->serviceStatus->description ?? "Sin estatus" }}"
+                    }'>
+                <i class="bi bi-trash"></i>
+            </button>
+            @endcan
+            
+            <button class="btn btn-primary btn-sm btn-seguimiento" 
+                    title="Seguimiento"
+                    data-ticket-id="{{ $ticket->id }}"
+                    data-employee-name="{{ $ticket->employee?->full_name ? addslashes($ticket->employee->full_name) : "—" }}"
+                    data-description="{{ $ticket->description ? addslashes($ticket->description) : "—" }}"
+                    data-building="{{ $ticket->building?->description ? addslashes($ticket->building->description) : "—" }}"
+                    data-department="{{ $ticket->department?->description ? addslashes($ticket->department->description) : "—" }}"
+                    data-created-at="{{ $ticket->created_at->format("d/m/Y H:i") }}"
+                    data-support-name="{{ $ticket->supportPersonal ? addslashes($ticket->supportPersonal->name . " " . $ticket->supportPersonal->lastnames) : "Pendiente de asignar" }}">
+                <i class="bi bi-chat-left-text"></i>
+            </button>
+        </div>
+        
+        <div class="text-center small">
+            @if($ticket->supportPersonal)
+                <span class="text-muted">
+                    <i class="bi bi-person-check me-1"></i>
+                    {{ $ticket->supportPersonal->name }} {{ $ticket->supportPersonal->lastnames }}
+                </span>
+            @else
+                <span class="text-muted">
+                    <i class="bi bi-clock me-1"></i>
+                    Pendiente de asignar
+                </span>
+            @endif
+        </div>
+    </div>
+@endif
                             </td>
                         </tr>
                         @empty
@@ -228,6 +242,7 @@
 @include('administrador.admin.modals.admin_solicitudes-modals.seguimiento_modal')
 @include('administrador.admin.modals.admin_solicitudes-modals.ver_modal')
 @include('administrador.admin.modals.admin_solicitudes-modals.eliminar_modal')
+@include('administrador.admin.modals.admin_solicitudes-modals.reasignar_modal')
 @endsection
 
 @section('scripts')
@@ -237,6 +252,7 @@
     @include('administrador.admin.scripts.ver_modal')
     @include('administrador.admin.scripts.editar_solicitud')
     @include('administrador.admin.scripts.eliminar_solicitud')
+    @include('administrador.admin.scripts.reasignar_solicitud')
   
 <script>
 $(document).ready(function() {   

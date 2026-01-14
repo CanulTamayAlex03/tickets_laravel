@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
@@ -10,14 +11,10 @@ class MisSolicitudesController extends Controller
     public function index(Request $request)
     {
         $query = Ticket::with(['building', 'department', 'employee', 'serviceStatus'])
-                      ->where('service_status_id', 2);
+            ->where('service_status_id', 2);
 
         if ($request->filled('employee_search')) {
-            $search = $request->employee_search;
-            
-            $query->whereHas('employee', function ($q) use ($search) {
-                $q->where('full_name', $search);
-            });
+            $query->where('employee_id', $request->employee_search);
         } else {
             $tickets = $query->whereRaw('1 = 0')->paginate(20);
             $employees = Employee::orderBy('full_name')->get();

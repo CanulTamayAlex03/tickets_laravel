@@ -23,18 +23,18 @@ class TicketController extends Controller
         $query = Ticket::with([
             'building' => function ($query) {
                 $query->withTrashed();
-            }, 
+            },
             'department' => function ($query) {
                 $query->withTrashed();
-            }, 
+            },
             'employee' => function ($query) {
                 $query->withTrashed();
-            }, 
-            'serviceStatus', 
-            'supportPersonal', 
-            'extraInfos.user', 
-            'indicatorType', 
-            'anotherService', 
+            },
+            'serviceStatus',
+            'supportPersonal',
+            'extraInfos.user',
+            'indicatorType',
+            'anotherService',
             'equipment'
         ]);
         $employees = Employee::orderBy('full_name')->get();
@@ -347,9 +347,9 @@ class TicketController extends Controller
         if (!auth()->user()->can('ver tickets')) {
             return response()->json(['count' => 0]);
         }
-        
+
         $count = Ticket::where('service_status_id', 1)->count();
-        
+
         return response()->json([
             'success' => true,
             'count' => $count,
@@ -377,13 +377,11 @@ class TicketController extends Controller
                 'success' => true,
                 'message' => 'Ticket eliminado exitosamente.'
             ]);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'El ticket no existe o ya fue eliminado.'
             ], 404);
-
         } catch (\Exception $e) {
             Log::error('Error al eliminar ticket: ' . $e->getMessage());
 
@@ -393,4 +391,42 @@ class TicketController extends Controller
             ], 500);
         }
     }
+
+    public function editarSeguimiento(Request $request, $ticketId, $seguimientoId)
+    {
+        $validated = $request->validate([
+            'description' => 'required|string|max:1000'
+        ]);
+
+        try {
+            $seguimiento = ExtraInfo::where('request_id', $ticketId)
+                ->where('id', $seguimientoId)
+                ->firstOrFail();
+
+            $seguimiento->update([
+                'description' => $validated['description'],
+                'updated_at' => now()
+            ]);
+
+            $seguimiento->load('user');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Seguimiento actualizado exitosamente',
+                'seguimiento' => $seguimiento
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Seguimiento no encontrado'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar el seguimiento: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    
 }

@@ -25,8 +25,9 @@
                                    data-placeholder="Buscar por: nombres, apellidos, No. nómina...">
                                 <option value=""></option>
                                 @foreach($employees as $employee)
-                                    <option value="{{ $employee->full_name }}" 
-                                            {{ request('employee_search') == $employee->full_name ? 'selected' : '' }}>
+                                    <option value="{{ $employee->id }}" 
+                                        {{ request('employee_search') == $employee->id ? 'selected' : '' }}>
+
                                         {{ $employee->full_name }} ({{ $employee->no_nomina }})
                                     </option>
                                 @endforeach

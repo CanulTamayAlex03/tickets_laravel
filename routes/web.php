@@ -63,6 +63,10 @@ Route::prefix('admin')->middleware(['auth', 'permission:acceso administrador'])-
     Route::post('/solicitudes/{id}/agregar-seguimiento', [TicketController::class, 'agregarSeguimiento'])
         ->name('admin.solicitudes.agregar-seguimiento')
         ->middleware('permission:editar tickets');
+        
+    Route::put('/solicitudes/{ticket}/seguimiento/{seguimiento}/editar', [TicketController::class, 'editarSeguimiento'])
+        ->name('admin.solicitudes.seguimiento.editar')
+        ->middleware('permission:editar tickets');
 
     // Ruta para verificar nuevas solicitudes
     Route::get('/admin/tickets/check-new', [TicketController::class, 'checkNewTickets'])
