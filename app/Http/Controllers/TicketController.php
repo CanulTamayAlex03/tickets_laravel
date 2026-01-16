@@ -428,5 +428,28 @@ class TicketController extends Controller
         }
     }
 
-    
+    public function reasignar(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'support_personal_id' => 'required|exists:support_personals,id'
+        ]);
+
+        try {
+            $ticket = Ticket::findOrFail($id);
+
+            $ticket->update([
+                'support_personal_id' => $validated['support_personal_id']
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Personal de soporte actualizado exitosamente'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al reasignar el ticket: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
