@@ -99,6 +99,7 @@
                                             <i class="bi bi-trash"></i>
                                         </button>
                                         @endcan
+                                        @can ('asignar tickets')
                                         <button class="btn btn-primary btn-sm btn-asignar"
                                             title="Asignar este ticket"
                                             data-ticket-id="{{ $ticket->id }}"
@@ -112,6 +113,7 @@
                                             }'>
                                             <i class="bi bi-people me-1"></i>
                                         </button>
+                                        @endcan
                                     </div>
                                 @elseif (request('status') == 'completado')
                                     <div class="d-flex flex-column gap-1 align-items-center">
@@ -153,7 +155,7 @@
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
 
-                                    @can('asignar tickets')
+                                    @can('reasignar tickets')
                                     <button class="btn btn-info btn-sm btn-reasignar"
                                         title="Reasignar ticket"
                                         data-ticket-id="{{ $ticket->id }}"

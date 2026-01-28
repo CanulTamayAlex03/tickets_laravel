@@ -497,7 +497,6 @@ $(document).ready(function() {
     }, 2000);
 });
 </script>
-
     @yield('scripts')
 </body>
 </html>

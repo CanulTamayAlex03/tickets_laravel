@@ -1,7 +1,7 @@
 <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="{{ route('admin.usuarios.store') }}" method="POST">
+            <form action="{{ route('admin.usuarios.store') }}" method="POST" id="addUserForm">
                 @csrf
                 <div class="modal-header bg-dark text-white">
                     <h5 class="modal-title" id="addUserModalLabel">Agregar Nuevo Usuario</h5>
@@ -12,10 +12,28 @@
                         <label for="email" class="form-label">Email</label>
                         <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" required>
                     </div>
+                    
                     <div class="mb-3">
                         <label for="password" class="form-label">Contraseña</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="password">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Mínimo 6 caracteres</small>
                     </div>
+                    
+                    <div class="mb-3">
+                        <label for="password_confirmation" class="form-label">Confirmar Contraseña</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
+                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="password_confirmation">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div class="mb-3">
                         <label for="role_id" class="form-label">Rol</label>
                         <select class="form-select" id="role_id" name="role_id" required>
@@ -63,5 +81,13 @@
     .form-check-input:checked {
         background-color: #0d6efd;
         border-color: #0d6efd;
+    }
+    
+    .toggle-password {
+        border-left: 0;
+    }
+    
+    .input-group .form-control:focus {
+        z-index: 3;
     }
 </style>

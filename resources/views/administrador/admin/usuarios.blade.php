@@ -104,66 +104,170 @@
 @include('administrador.admin.modals.user_create')
 @include('administrador.admin.modals.user_edit')
 
-@section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    $('.select2-tags:not(.modal .select2-tags)').select2({
-        width: '100%',
-        placeholder: "Selecciona edificios...",
-        allowClear: true
-    });
-
-    $('#addUserModal').on('shown.bs.modal', function () {
-        $('#buildings').select2({
-            width: '100%',
-            placeholder: "Selecciona edificios...",
-            allowClear: true,
-            dropdownParent: $('#addUserModal')
-        });
-    });
-
-    $('#editUserModal').on('shown.bs.modal', function () {
-        $('#edit_buildings').select2({
-            width: '100%',
-            placeholder: "Selecciona edificios...",
-            allowClear: true,
-            dropdownParent: $('#editUserModal')
-        });
-    });
-
-    $('#addUserModal, #editUserModal').on('hidden.bs.modal', function () {
-        $('#buildings, #edit_buildings').select2('destroy');
-    });
-
-    document.querySelectorAll('.btn-edit').forEach(button => {
-        button.addEventListener('click', function() {
+    console.log('DOM cargado - Script ejecutándose');
+        
+    const editButtons = document.querySelectorAll('.btn-edit');
+    console.log('Botones de editar encontrados:', editButtons.length);
+    
+    editButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Botón editar clickeado');
+            
             const userId = this.getAttribute('data-id');
             const userEmail = this.getAttribute('data-email');
             const roleId = this.getAttribute('data-role_id');
             const estatus = this.getAttribute('data-estatus');
-            const buildings = JSON.parse(this.getAttribute('data-buildings'));
+            const buildings = JSON.parse(this.getAttribute('data-buildings') || '[]');
             
-            document.getElementById('editForm').action = `/admin/usuarios/${userId}`;
+            console.log('Datos:', { userId, userEmail, roleId, estatus, buildings });
+            
             document.getElementById('edit_email').value = userEmail;
             document.getElementById('edit_role_id').value = roleId;
             document.getElementById('edit_estatus').checked = estatus === '1';
             
-            const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-            editModal.show();
+            const editForm = document.getElementById('editForm');
+            if (editForm) {
+                editForm.action = `/admin/usuarios/${userId}`;
+                console.log('Form action actualizado a:', editForm.action);
+            }
             
-            $('#editUserModal').one('shown.bs.modal', function() {
-                const buildingSelect = document.getElementById('edit_buildings');
-                Array.from(buildingSelect.options).forEach(option => {
-                    option.selected = buildings.includes(parseInt(option.value));
-                });
+            const editModalElement = document.getElementById('editUserModal');
+            if (editModalElement) {
+                const editModal = new bootstrap.Modal(editModalElement);
+                editModal.show();
+                console.log('Modal mostrado');
                 
-                $('#edit_buildings').trigger('change');
-            });
+                editModalElement.addEventListener('shown.bs.modal', function() {
+                    console.log('Modal completamente mostrado');
+                    
+                    const buildingSelect = document.getElementById('edit_buildings');
+                    if (buildingSelect) {
+                        console.log('Select de buildings encontrado');
+                        
+                        Array.from(buildingSelect.options).forEach(option => {
+                            option.selected = false;
+                        });
+                        
+                        buildings.forEach(buildingId => {
+                            const option = buildingSelect.querySelector(`option[value="${buildingId}"]`);
+                            if (option) {
+                                option.selected = true;
+                                console.log('Building seleccionado:', buildingId);
+                            }
+                        });
+                        
+                        if (typeof $.fn.select2 !== 'undefined' && $('#edit_buildings').hasClass('select2-hidden-accessible')) {
+                            $('#edit_buildings').trigger('change');
+                            console.log('Select2 actualizado');
+                        }
+                    }
+                    
+                    document.getElementById('edit_password').value = '';
+                    document.getElementById('edit_password_confirmation').value = '';
+                    
+                    document.querySelectorAll('.toggle-password i').forEach(icon => {
+                        icon.className = 'bi bi-eye';
+                    });
+                });
+            } else {
+                console.error('ERROR: No se encontró el elemento #editUserModal');
+            }
         });
     });
+    
+    document.addEventListener('click', function(e) {
+        const toggleBtn = e.target.closest('.toggle-password');
+        if (toggleBtn) {
+            const targetId = toggleBtn.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            const icon = toggleBtn.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bi bi-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'bi bi-eye';
+            }
+        }
+    });
+    
+    const addForm = document.getElementById('addUserForm');
+    if (addForm) {
+        addForm.addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('password_confirmation').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Las contraseñas no coinciden');
+                return false;
+            }
+            
+            if (password.length < 6) {
+                e.preventDefault();
+                alert('La contraseña debe tener al menos 6 caracteres');
+                return false;
+            }
+        });
+    }
+    
+    const editForm = document.getElementById('editForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            const password = document.getElementById('edit_password').value;
+            const confirmPassword = document.getElementById('edit_password_confirmation').value;
+
+            const hasPassword = password.trim().length > 0;
+            const hasConfirmPassword = confirmPassword.trim().length > 0;
+
+            if ((hasPassword && !hasConfirmPassword) || (!hasPassword && hasConfirmPassword)) {
+                e.preventDefault();
+                alert('Por favor, complete ambos campos de contraseña o déjelos vacíos si no desea cambiarla');
+                return false;
+            }
+
+            if (hasPassword && hasConfirmPassword) {
+                if (password !== confirmPassword) {
+                    e.preventDefault();
+                    alert('Las contraseñas no coinciden');
+                    return false;
+                }
+
+                if (password.length < 6) {
+                    e.preventDefault();
+                    alert('La contraseña debe tener al menos 6 caracteres');
+                    return false;
+                }
+            }
+
+        });
+    }
+    
+    if (typeof $.fn.select2 !== 'undefined') {
+        $('#addUserModal').on('shown.bs.modal', function() {
+            $('#buildings').select2({
+                dropdownParent: $(this),
+                width: '100%'
+            });
+        });
+        
+        $('#editUserModal').on('shown.bs.modal', function() {
+            $('#edit_buildings').select2({
+                dropdownParent: $(this),
+                width: '100%'
+            });
+        });
+        
+        $('#addUserModal, #editUserModal').on('hidden.bs.modal', function() {
+            $('#buildings, #edit_buildings').select2('destroy');
+        });
+    }
 });
 </script>
-@endsection
 
 <style>
     .table {
@@ -196,6 +300,12 @@ document.addEventListener('DOMContentLoaded', function() {
         border-left: none;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
+    }
+    
+    .toggle-password {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        border-left: 0;
     }
 </style>
 @endsection

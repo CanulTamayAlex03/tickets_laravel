@@ -18,6 +18,7 @@ class PermissionSeeder extends Seeder
         $this->createPermissionIfNotExists('eliminar tickets');
         $this->createPermissionIfNotExists('gestionar tickets');
         $this->createPermissionIfNotExists('asignar tickets');
+        $this->createPermissionIfNotExists('reasignar tickets');
 
         // ================== PERMISOS PARA USUARIOS ==================
         $this->createPermissionIfNotExists('ver usuarios');
@@ -86,12 +87,9 @@ class PermissionSeeder extends Seeder
         // admin - Permisos administrativos
         $admin->syncPermissions([
             'ver tickets', 'crear tickets', 'editar tickets', 'gestionar tickets',
-            'ver usuarios', 'crear usuarios', 'editar usuarios',
+            'asignar tickets', 'reasignar tickets',
             'ver reportes', 'generar reportes',
-            'acceso administrador', 'notificaciones tickets nuevos', 'editar personal soporte',
-            'ver edificios', 'crear edificios', 'editar edificios', 'eliminar edificios',
-            'ver departamentos', 'crear departamentos', 'editar departamentos', 'eliminar departamentos',
-            'ver empleados', 'crear empleados', 'editar empleados', 'eliminar empleados'
+            'acceso administrador', 'notificaciones tickets nuevos',    
         ]);
 
         // ati - Permisos de soporte técnico

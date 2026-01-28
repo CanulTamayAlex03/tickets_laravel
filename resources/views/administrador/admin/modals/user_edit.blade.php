@@ -13,11 +13,28 @@
                         <label for="edit_email" class="form-label">Email</label>
                         <input type="email" class="form-control" id="edit_email" name="email" required>
                     </div>
+                    
                     <div class="mb-3">
                         <label for="edit_password" class="form-label">Nueva Contraseña</label>
-                        <input type="password" class="form-control" id="edit_password" name="password">
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="edit_password" name="password">
+                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="edit_password">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                         <small class="text-muted">Dejar en blanco para no cambiar</small>
                     </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_password_confirmation" class="form-label">Confirmar Contraseña</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="edit_password_confirmation" name="password_confirmation">
+                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="edit_password_confirmation">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div class="mb-3">
                         <label for="edit_role_id" class="form-label">Rol</label>
                         <select class="form-select" id="edit_role_id" name="role_id" required>
@@ -58,5 +75,13 @@
     .form-check-input:checked {
         background-color: #0d6efd;
         border-color: #0d6efd;
+    }
+    
+    .toggle-password {
+        border-left: 0;
+    }
+    
+    .input-group .form-control:focus {
+        z-index: 3;
     }
 </style>

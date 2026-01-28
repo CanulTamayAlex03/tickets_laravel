@@ -40,11 +40,16 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
+            'password' => 'required|min:6|confirmed',
+            'password_confirmation' => 'required|min:6',
             'role_id' => 'required|exists:roles,id',
             'buildings' => 'sometimes|array',
             'buildings.*' => 'exists:buildings,id',
             'estatus' => 'sometimes|boolean'
+        ], [
+            'password.confirmed' => 'La confirmación de contraseña no coincide.',
+            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
+            'password_confirmation.required' => 'La confirmación de contraseña es obligatoria.',
         ]);
 
         if ($validator->fails()) {
@@ -85,11 +90,32 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:users,email,' . $id,
-            'password' => 'nullable|min:6',
+            'password' => [
+                'nullable',
+                'min:6',
+                'confirmed',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value && !$request->has('password_confirmation')) {
+                        $fail('La confirmación de contraseña es requerida.');
+                    }
+                }
+            ],
+            'password_confirmation' => [
+                'nullable',
+                'min:6',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value && !$request->has('password')) {
+                        $fail('La nueva contraseña es requerida.');
+                    }
+                }
+            ],
             'role_id' => 'required|exists:roles,id',
             'buildings' => 'sometimes|array',
             'buildings.*' => 'exists:buildings,id',
             'estatus' => 'sometimes|boolean'
+        ], [
+            'password.confirmed' => 'La confirmación de contraseña no coincide.',
+            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
         ]);
 
         if ($validator->fails()) {
