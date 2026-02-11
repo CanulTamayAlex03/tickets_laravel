@@ -37,7 +37,15 @@
         </a>
     </div>
 </div>
-
+            @php
+                $hayFiltrosBusqueda = 
+                    request()->filled('search') ||
+                    request()->filled('employee_id') ||
+                    request()->filled('support_personal_id') ||
+                    request()->filled('building_id') ||
+                    request()->filled('department_id') ||
+                    request()->filled('status_filter');
+            @endphp
             <div class="table-responsive">
                 <table class="table table-sm table-striped table-hover mb-2">
                     <thead class="table-dark">
@@ -83,131 +91,138 @@
                                     {{ $ticket->serviceStatus->description ?? 'Sin estatus' }}
                                 </span>
                             </td>
-                            <td>
-                                @if (request('status') == 'nuevo' || !request()->has('status'))
-                                    <div class="d-flex justify-content-center gap-1">
-                                        @can('eliminar tickets')
-                                        <button class="btn btn-danger btn-sm btn-eliminar" 
-                                                title="Eliminar ticket"
+                        <td>
+                            @if($hayFiltrosBusqueda)
+                                <div class="d-flex flex-column gap-1 align-items-center">
+                                    <div class="mb-1">
+                                        <button class="btn btn-primary btn-sm btn-ver" 
+                                                title="Ver"
                                                 data-ticket-id="{{ $ticket->id }}"
-                                                data-ticket-data='{
-                                                    "descripcion": "{{ addslashes($ticket->description) }}",
-                                                    "usuario": "{{ addslashes($ticket->employee?->full_name ?? 'Sin usuario') }}",
-                                                    "fecha": "{{ $ticket->created_at->format('d/m/Y H:i') }}",
-                                                    "estatus": "{{ $ticket->serviceStatus->description ?? 'Sin estatus' }}"
-                                                }'>
-                                            <i class="bi bi-trash"></i>
+                                                data-employee-name="{{ $ticket->employee?->full_name ?? '—' }}"
+                                                data-description="{{ $ticket->description ?? '—' }}"
+                                                data-building="{{ $ticket->building?->description ?? '—' }}"
+                                                data-department="{{ $ticket->department?->description ?? '—' }}"
+                                                data-created-at="{{ $ticket->created_at->format('d/m/Y H:i') }}"
+                                                data-support-name="{{ $ticket->supportPersonal ? ($ticket->supportPersonal->name . ' ' . $ticket->supportPersonal->lastnames) : 'Pendiente de asignar' }}">
+                                            <i class="bi bi-eye"></i>
                                         </button>
-                                        @endcan
-                                        @can ('asignar tickets')
-                                        <button class="btn btn-primary btn-sm btn-asignar"
-                                            title="Asignar este ticket"
-                                            data-ticket-id="{{ $ticket->id }}"
-                                            data-ticket-data='{
-                                                "employee_name": "{{ $ticket->employee?->full_name ?? '—' }}",
-                                                "description": "{{ addslashes($ticket->description) }}",
-                                                "building": "{{ $ticket->building?->description ?? '—' }}",
-                                                "department": "{{ $ticket->department?->description ?? '—' }}",
-                                                "created_at": "{{ $ticket->created_at->format('d/m/Y H:i') }}",
-                                                "support_name": "{{ $ticket->supportPersonal?->name ?? '' }} {{ $ticket->supportPersonal?->lastnames ?? '' }}"
-                                            }'>
-                                            <i class="bi bi-people me-1"></i>
-                                        </button>
-                                        @endcan
                                     </div>
-                                @elseif (request('status') == 'completado')
-                                    <div class="d-flex flex-column gap-1 align-items-center">
-                                        <div class="mb-1">
-                                            <button class="btn btn-primary btn-sm btn-ver" 
-                                                    title="Ver"
-                                                    data-ticket-id="{{ $ticket->id }}"
-                                                    data-employee-name="{{ $ticket->employee?->full_name ?? '—' }}"
-                                                    data-description="{{ $ticket->description ?? '—' }}"
-                                                    data-building="{{ $ticket->building?->description ?? '—' }}"
-                                                    data-department="{{ $ticket->department?->description ?? '—' }}"
-                                                    data-created-at="{{ $ticket->created_at->format('d/m/Y H:i') }}"
-                                                    data-support-name="{{ $ticket->supportPersonal ? ($ticket->supportPersonal->name . ' ' . $ticket->supportPersonal->lastnames) : 'Pendiente de asignar' }}">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </div>
-                                        
-                                        <div class="text-center small">
-                                            @if($ticket->supportPersonal)
-                                                <span class="text-muted">
-                                                    <i class="bi bi-person-check me-1"></i>
-                                                    {{ $ticket->supportPersonal->name }} {{ $ticket->supportPersonal->lastnames }}
-                                                </span>
-                                            @else
-                                                <span class="text-muted">
-                                                    <i class="bi bi-clock me-1"></i>
-                                                    Pendiente de asignar
-                                                </span>
-                                            @endif
-                                        </div>
+                                    <div class="text-center small">
+                                        @if($ticket->supportPersonal)
+                                            <span class="text-muted">
+                                                <i class="bi bi-person-check me-1"></i>
+                                                {{ $ticket->supportPersonal->name }} {{ $ticket->supportPersonal->lastnames }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                Pendiente de asignar
+                                            </span>
+                                        @endif
                                     </div>
-                                @else
-                            <div class="d-flex flex-column gap-1">
-                                <div class="d-flex justify-content-center gap-1 mb-1">
-                                    <!-- Botón para editar ticket -->
-                                    <button class="btn btn-warning btn-sm btn-editar-ticket"
-                                        title="Editar ticket"
-                                        data-ticket-id="{{ $ticket->id }}">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
-
-                                    @can('reasignar tickets')
-                                    <button class="btn btn-info btn-sm btn-reasignar"
-                                        title="Reasignar ticket"
-                                        data-ticket-id="{{ $ticket->id }}"
-                                        data-ticket-data='{
-                                            "current_support": "{{ $ticket->supportPersonal ? ($ticket->supportPersonal->name . ' ' . $ticket->supportPersonal->lastnames) : 'Sin asignar' }}"
-                                        }'>
-                                        <i class="bi bi-person-rolodex"></i>
-                                    </button>
-                                    @endcan
+                                </div>
+                            
+                            @elseif (request('status') == 'nuevo' || !request()->has('status'))
+                                <div class="d-flex justify-content-center gap-1">
                                     @can('eliminar tickets')
                                     <button class="btn btn-danger btn-sm btn-eliminar" 
                                             title="Eliminar ticket"
-                                            data-ticket-id="{{ $ticket->id }}"
-                                            data-ticket-data='{
-                                                "descripcion": "{{ addslashes($ticket->description) }}",
-                                                "usuario": "{{ addslashes($ticket->employee?->full_name ?? "Sin usuario") }}",
-                                                "fecha": "{{ $ticket->created_at->format("d/m/Y H:i") }}",
-                                                "estatus": "{{ $ticket->serviceStatus->description ?? "Sin estatus" }}"
-                                            }'>
+                                            data-ticket-id="{{ $ticket->id }}">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                     @endcan
-
-                                    <button class="btn btn-primary btn-sm btn-seguimiento" 
-                                            title="Seguimiento"
-                                            data-ticket-id="{{ $ticket->id }}"
-                                            data-employee-name="{{ $ticket->employee?->full_name ? addslashes($ticket->employee->full_name) : "—" }}"
-                                            data-description="{{ $ticket->description ? addslashes($ticket->description) : "—" }}"
-                                            data-building="{{ $ticket->building?->description ? addslashes($ticket->building->description) : "—" }}"
-                                            data-department="{{ $ticket->department?->description ? addslashes($ticket->department->description) : "—" }}"
-                                            data-created-at="{{ $ticket->created_at->format("d/m/Y H:i") }}"
-                                            data-support-name="{{ $ticket->supportPersonal ? addslashes($ticket->supportPersonal->name . " " . $ticket->supportPersonal->lastnames) : "Pendiente de asignar" }}">
-                                        <i class="bi bi-chat-left-text"></i>
+                                    @can ('asignar tickets')
+                                    <button class="btn btn-primary btn-sm btn-asignar"
+                                        title="Asignar este ticket"
+                                        data-ticket-id="{{ $ticket->id }}"
+                                        data-ticket-data='{
+                                            "employee_name": "{{ addslashes($ticket->employee?->full_name ?? '—') }}",
+                                            "description": "{{ addslashes($ticket->description) }}",
+                                            "building": "{{ addslashes($ticket->building?->description ?? '—') }}",
+                                            "department": "{{ addslashes($ticket->department?->description ?? '—') }}",
+                                            "created_at": "{{ $ticket->created_at->format('d/m/Y H:i') }}"
+                                        }'>
+                                        <i class="bi bi-people me-1"></i>
                                     </button>
+                                    @endcan
                                 </div>
+                            @elseif (request('status') == 'completado')
+                                <div class="d-flex flex-column gap-1 align-items-center">
+                                    <div class="mb-1">
+                                        <button class="btn btn-primary btn-sm btn-ver" 
+                                                title="Ver"
+                                                data-ticket-id="{{ $ticket->id }}"
+                                                data-employee-name="{{ $ticket->employee?->full_name ?? '—' }}"
+                                                data-description="{{ $ticket->description ?? '—' }}"
+                                                data-building="{{ $ticket->building?->description ?? '—' }}"
+                                                data-department="{{ $ticket->department?->description ?? '—' }}"
+                                                data-created-at="{{ $ticket->created_at->format('d/m/Y H:i') }}"
+                                                data-support-name="{{ $ticket->supportPersonal ? ($ticket->supportPersonal->name . ' ' . $ticket->supportPersonal->lastnames) : 'Pendiente de asignar' }}">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="text-center small">
+                                        @if($ticket->supportPersonal)
+                                            <span class="text-muted">
+                                                <i class="bi bi-person-check me-1"></i>
+                                                {{ $ticket->supportPersonal->name }} {{ $ticket->supportPersonal->lastnames }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                Pendiente de asignar
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @else
+                                <div class="d-flex flex-column gap-1">
+                                    <div class="d-flex justify-content-center gap-1 mb-1">
+                                        <button class="btn btn-warning btn-sm btn-editar-ticket"
+                                            title="Editar ticket"
+                                            data-ticket-id="{{ $ticket->id }}">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        @can('reasignar tickets')
+                                        <button class="btn btn-info btn-sm btn-reasignar"
+                                            title="Reasignar ticket"
+                                            data-ticket-id="{{ $ticket->id }}"
+                                            data-ticket-data='{
+                                                "current_support": "{{ addslashes($ticket->supportPersonal ? ($ticket->supportPersonal->name . ' ' . $ticket->supportPersonal->lastnames) : 'Sin asignar') }}"
+                                            }'>
+                                            <i class="bi bi-person-rolodex"></i>
+                                        </button>
+                                        @endcan
+                                        @can('eliminar tickets')
+                                        <button class="btn btn-danger btn-sm btn-eliminar" 
+                                                title="Eliminar ticket"
+                                                data-ticket-id="{{ $ticket->id }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                        @endcan
+                                        <button class="btn btn-primary btn-sm btn-seguimiento" 
+                                                title="Seguimiento"
+                                                data-ticket-id="{{ $ticket->id }}">
+                                            <i class="bi bi-chat-left-text"></i>
+                                        </button>
+                                    </div>
+                                    <div class="text-center small">
+                                        @if($ticket->supportPersonal)
+                                            <span class="text-muted">
+                                                <i class="bi bi-person-check me-1"></i>
+                                                {{ $ticket->supportPersonal->name }} {{ $ticket->supportPersonal->lastnames }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">
+                                                <i class="bi bi-clock me-1"></i>
+                                                Pendiente de asignar
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif      
+                        </td>
 
-                                <div class="text-center small">
-                                    @if($ticket->supportPersonal)
-                                        <span class="text-muted">
-                                            <i class="bi bi-person-check me-1"></i>
-                                            {{ $ticket->supportPersonal->name }} {{ $ticket->supportPersonal->lastnames }}
-                                        </span>
-                                    @else
-                                        <span class="text-muted">
-                                            <i class="bi bi-clock me-1"></i>
-                                            Pendiente de asignar
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-                            @endif
-                            </td>
                         </tr>
                         @empty
                         <tr>
@@ -258,16 +273,12 @@ $(document).ready(function() {
     let currentTicketCount = {{ $tickets->total() }};
     let lastTimestamp = '{{ now()->toISOString() }}';
     
-    
-    // ============ FUNCIONES PARA NOTIFICACIONES ============
-    
+        
     function checkNotifications() {
-        // Verificar si el usuario tiene permisos de admin (nuevos tickets)
         if (window.userPermissions && window.userPermissions.includes('notificaciones tickets nuevos')) {
             checkNewTicketsForAdmin();
         }
         
-        // Verificar si el usuario tiene permisos de soporte (tickets asignados)
         if (window.userPermissions && window.userPermissions.includes('notificaciones tickets asignados')) {
             checkAssignedTicketsForSupport();
         }
@@ -285,7 +296,6 @@ $(document).ready(function() {
                 }
             },
             error: function() {
-                // Silenciar error
             }
         });
     }
@@ -295,6 +305,7 @@ $(document).ready(function() {
             url: '/admin/notifications/assigned-count',
             type: 'GET',
             dataType: 'json',
+
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             success: function(response) {
                 if (response.success && response.count > 0) {
@@ -340,27 +351,23 @@ $(document).ready(function() {
         
         $('#notificationContainer').prepend($notification);
         
-        // Redirigir al hacer clic
         $notification.on('click', function(e) {
             if (!$(e.target).hasClass('btn-close')) {
                 window.location.href = "{{ route('admin.admin_solicitudes', ['status' => 'nuevo']) }}";
             }
         });
         
-        // Auto-eliminar después de 6 segundos
         setTimeout(() => {
             $notification.alert('close');
         }, 6000);
     }
     
     function showSupportNotification(count) {
-        // Verificar si ya hay una notificación similar visible
         const existingNotification = $('#notificationContainer').find('.alert-warning').filter(function() {
             return $(this).text().includes('Tickets Asignados');
         });
         
         if (existingNotification.length > 0) {
-            // Actualizar conteo en notificación existente
             existingNotification.find('.small').html(`Tienes ${count} ticket(s) recientemente asignado(s)`);
             existingNotification.find('.text-muted').html(`
                 <i class="bi bi-clock me-1"></i>
@@ -399,9 +406,7 @@ $(document).ready(function() {
             $notification.alert('close');
         }, 6000);
     }
-    
-    // ============ FUNCIONES ORIGINALES ============
-    
+        
     function mostrarNotificacion(mensaje, tipo = 'success') {
         $('.alert.position-fixed').remove();
         
@@ -698,18 +703,14 @@ $(document).ready(function() {
         
         reinitializeButtonEvents();
         
-        // ============ INICIALIZAR NOTIFICACIONES POR ROLES ============
         
-        // Pasar permisos del usuario a JavaScript
         window.userPermissions = @json(auth()->user()->getAllPermissions()->pluck('name')->toArray());
         
         
         
-        // Primera verificación después de 3 segundos
         setTimeout(checkNotifications, 3000);
     }
     
-    // Inicializar el sistema de auto-refresh
     setTimeout(initializeAutoRefreshSystem, 1000);
 });
 </script>

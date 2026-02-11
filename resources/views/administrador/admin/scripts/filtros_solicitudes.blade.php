@@ -24,6 +24,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const hasFilters = urlParams.has('search') ||
             urlParams.has('employee_id') ||
+            urlParams.has('support_personal_id') ||
             urlParams.has('building_id') ||
             urlParams.has('department_id') ||
             urlParams.has('status_filter');

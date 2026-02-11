@@ -56,17 +56,25 @@
                             </select>
                         </div>
 
-                        <div class="col-12 mb-3">
-                            <label for="search" class="form-label">Buscar en descripción, empleado, departamento, etc.</label>
-                            <input type="text" class="form-control" id="search" name="search"
-                                placeholder="Buscar en descripción, nombres, departamentos..." value="{{ request('search') }}">
+                        <div class="col-md-6 mb-3">
+                            <label for="support_personal_id" class="form-label">Personal de soporte asignado</label>
+                            <select class="form-select select2-support" id="support_personal_id" name="support_personal_id">
+                                <option value="">Seleccionar personal</option>
+                                @foreach($supportPersonals as $support)
+                                <option value="{{ $support->id }}"
+                                    {{ request('support_personal_id') == $support->id ? 'selected' : '' }}>
+                                    {{ $support->name }} {{ $support->lastnames }}
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="employee_search" class="form-label">Búsqueda específica de empleado</label>
-                            <input type="text" class="form-control" id="employee_search" name="employee_search"
-                                placeholder="Buscar por nombre o nómina..." value="{{ request('employee_search') }}">
+                        <div class="col-12 mb-3">
+                            <label for="search" class="form-label">Buscar por descripción</label>
+                            <input type="text" class="form-control" id="search" name="search"
+                                placeholder="Buscar en descripción" value="{{ request('search') }}">
                         </div>
+
                     </div>
                 </div>
                 <div class="modal-footer">

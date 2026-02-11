@@ -35,6 +35,10 @@ class TicketEditarModal {
     openModal(e) {
         const ticketId = $(e.currentTarget).data('ticket-id');
         this.resetForm();
+
+        $('#ticket-id').text(ticketId);
+        $('#edit_ticket_id').val(ticketId);
+
         this.loadTicketData(ticketId);
     }
     
@@ -74,7 +78,6 @@ class TicketEditarModal {
 
     populateModal(ticket, extraInfos) {
         $('#edit_ticket_id').val(ticket.id);
-        
         //$('#edit_support_personal_id').val(ticket.support_personal_id).trigger('change');
         if (ticket.support_personal_id) {
             const personalName = ticket.support_personal?.name 
@@ -299,16 +302,25 @@ class TicketEditarModal {
     }
     
     validateForm() {
+        const estadoSeleccionado = $('#edit_service_status_id').val();
+        const estado = parseInt(estadoSeleccionado);
+        const esCompletado = estado === 5;
+        const esPendiente = estado === 4;
+
         let isValid = true;
         let firstErrorField = null;
+
+        let requiredFields = ['#edit_service_status_id'];
         
-        const requiredFields = [
-            '#edit_indicator_type_id',
-            '#edit_another_service_id',
-            '#edit_equipment_id',
-            '#edit_activity_description',
-            '#edit_service_status_id'
-        ];
+        if (esCompletado) {
+            requiredFields = [
+                '#edit_indicator_type_id',
+                '#edit_another_service_id',
+                '#edit_equipment_id',
+                '#edit_activity_description',
+                '#edit_service_status_id'
+            ];
+        }
         
         requiredFields.forEach(field => {
             const $field = $(field);
@@ -331,7 +343,7 @@ class TicketEditarModal {
         });
         
         const supportPersonalId = $('#edit_support_personal_id').val();
-        if (!supportPersonalId) {
+        if (esCompletado && !supportPersonalId) {
             this.showNotification('Debe asignar personal de soporte antes de guardar', 'error');
             $('#edit_support_personal_display').addClass('border-danger');
             isValid = false;
@@ -339,7 +351,7 @@ class TicketEditarModal {
             $('#edit_support_personal_display').removeClass('border-danger');
         }
         
-        if (this.seguimientosCount === 0) {
+        if ((esCompletado || esPendiente) && this.seguimientosCount === 0) {
             this.showNotification('Debe agregar al menos un seguimiento técnico antes de guardar', 'error');
             
             $('#lista_seguimientos').addClass('border border-danger rounded p-2');
@@ -474,6 +486,7 @@ class TicketEditarModal {
             $notificacion.alert('close');
         }, 3000);
     }
+
 }
 
 $(document).ready(function() {
@@ -529,4 +542,28 @@ $(document).ready(function() {
         }
     }
 });
+
+function toggleRequiredFields() {
+    const estado = parseInt($('#edit_service_status_id').val());
+    const esCompletado = estado === 5;
+
+    const fields = [
+        '#edit_indicator_type_id',
+        '#edit_equipment_id',
+        '#edit_activity_description'
+    ];
+
+    fields.forEach(function(field) {
+        if (esCompletado) {
+            $(field).attr('required', true);
+        } else {
+            $(field).removeAttr('required');
+        }
+    });
+}
+
+$('#edit_service_status_id').on('change', function() {
+    toggleRequiredFields();
+});
+
 </script>

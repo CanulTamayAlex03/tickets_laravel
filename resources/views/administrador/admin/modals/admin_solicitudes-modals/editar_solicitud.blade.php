@@ -3,7 +3,10 @@
         <div class="modal-content" style="background-color: #f8fafc;">
             <div class="modal-header text-white py-2" style="background-color: #210240;">
                 <h5 class="modal-title fs-6 mb-0" id="editarSolicitudModalLabel">
-                    <i class="bi bi-pencil-square me-2"></i>Editar Solicitud
+                    <i class="bi bi-pencil-square me-2"></i>Editar Solicitud 
+                    <span class="fw-bold">
+                        #<span id="ticket-id">—</span>
+                    </span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -149,7 +152,7 @@
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label for="edit_indicator_type_id" class="form-label fw-bold small">Indicador:</label>
-                                        <select class="form-select form-select-sm" id="edit_indicator_type_id" name="indicator_type_id" required>
+                                        <select class="form-select form-select-sm" id="edit_indicator_type_id" name="indicator_type_id">
                                             <option value="">Seleccionar</option>
                                             @foreach($indicatorTypes as $indicator)
                                                 <option value="{{ $indicator->id }}">
@@ -170,7 +173,7 @@
                                 <div class="row g-2 mt-2">
                                     <div class="col-12">
                                         <label for="edit_equipment_id" class="form-label fw-bold small">Equipo:</label>
-                                        <select class="form-select form-select-sm" id="edit_equipment_id" name="equipment_id" required>
+                                        <select class="form-select form-select-sm" id="edit_equipment_id" name="equipment_id">
                                             <option value="">Seleccionar equipo</option>
                                             @foreach($equipmentList as $equipment)
                                                 <option value="{{ $equipment->id }}">
@@ -191,19 +194,39 @@
                                     <label for="edit_activity_description" class="form-label fw-bold small">Actividad realizada:</label>
                                     <textarea class="form-control form-control-sm" id="edit_activity_description" 
                                               name="activity_description" rows="2" 
-                                              placeholder="Describa las actividades realizadas..." required></textarea>
+                                              placeholder="Describa las actividades realizadas..."></textarea>
                                 </div>
 
                                 <div class="row g-2">
                                     <div class="col-12">
-                                        <label for="edit_service_status_id" class="form-label fw-bold small">Estado:</label>
-                                        <select class="form-select form-select-sm" id="edit_service_status_id" name="service_status_id">
-                                            @foreach($serviceStatuses as $status)
-                                                <option value="{{ $status->id }}">
-                                                    {{ $status->description }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                    <label for="edit_service_status_id" class="form-label fw-bold small">Estado:</label>
+                                    <select class="form-select form-select-sm" id="edit_service_status_id" name="service_status_id">
+
+                                        @foreach($serviceStatuses as $status)
+
+                                            @if(request('status') == 'cerrado')
+
+                                                {{-- Si estoy en "cerrado", solo mostrar id 5 --}}
+                                                @if($status->id == 5)
+                                                    <option value="{{ $status->id }}">
+                                                        {{ $status->description }}
+                                                    </option>
+                                                @endif
+
+                                            @else
+
+                                                {{-- En los demás casos ocultar 1 y 3 --}}
+                                                @if(!in_array($status->id, [1, 3]))
+                                                    <option value="{{ $status->id }}">
+                                                        {{ $status->description }}
+                                                    </option>
+                                                @endif
+
+                                            @endif
+
+                                        @endforeach
+
+                                    </select>
                                     </div>
                                 </div>
                             </div>

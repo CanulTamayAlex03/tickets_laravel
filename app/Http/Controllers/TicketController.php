@@ -66,7 +66,7 @@ class TicketController extends Controller
             }
         }
 
-        if (!$request->hasAny(['status', 'employee_id', 'building_id', 'department_id', 'status_filter', 'search'])) {
+        if (!$request->hasAny(['status', 'employee_id', 'building_id', 'department_id', 'status_filter', 'search', 'support_personal_id'])) {
             $query->where('service_status_id', 1);
         }
 
@@ -90,6 +90,9 @@ class TicketController extends Controller
         if ($request->filled('department_id')) {
             $query->where('department_id', $request->department_id);
         }
+        if ($request->filled('support_personal_id')) {
+            $query->where('support_personal_id', $request->support_personal_id);
+        }
 
         if ($request->filled('status_filter')) {
             switch ($request->status_filter) {
@@ -112,32 +115,9 @@ class TicketController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search = $request->search;
-
-            $query->where(function ($q) use ($search) {
-                $q->where('description', 'like', "%{$search}%")
-                    ->orWhereHas('employee', function ($q) use ($search) {
-                        $q->where('full_name', 'like', "%{$search}%")
-                            ->orWhere('name', 'like', "%{$search}%")
-                            ->orWhere('lastname', 'like', "%{$search}%")
-                            ->orWhere('lastname2', 'like', "%{$search}%")
-                            ->orWhere('no_nomina', 'like', "%{$search}%");
-                    })
-                    ->orWhereHas('department', function ($q) use ($search) {
-                        $q->where('description', 'like', "%{$search}%");
-                    })
-                    ->orWhereHas('building', function ($q) use ($search) {
-                        $q->where('description', 'like', "%{$search}%");
-                    })
-                    ->orWhereHas('serviceStatus', function ($q) use ($search) {
-                        $q->where('description', 'like', "%{$search}%");
-                    })
-                    ->orWhereHas('supportPersonal', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                            ->orWhere('lastnames', 'like', "%{$search}%");
-                    });
-            });
+            $query->where('description', 'like', '%' . $request->search . '%');
         }
+
 
         $tickets = $query->orderBy('created_at', 'desc')->paginate(20);
 
