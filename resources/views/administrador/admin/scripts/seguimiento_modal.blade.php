@@ -1,7 +1,7 @@
 <script>
 $(document).ready(function() {
 
-    let seguimientoEditandoId = null; // 👈 controla si estamos editando o creando
+    let seguimientoEditandoId = null;
 
     function formatearFecha(fechaString) {
         if (!fechaString) return '—';
@@ -71,59 +71,72 @@ $(document).ready(function() {
         });
     }
 
-    // ================= ABRIR MODAL =================
-    $(document).on('click', '.btn-seguimiento', function() {
-        const ticketId = $(this).data('ticket-id');
-
-        seguimientoEditandoId = null;
-
-        const ticketData = {
-            employee_name: $(this).data('employee-name') || '—',
-            description: $(this).data('description') || '—',
-            building: $(this).data('building') || '—',
-            department: $(this).data('department') || '—',
-            created_at: $(this).data('created-at') || '—',
-            support_name: $(this).data('support-name') || 'Pendiente de asignar'
-        };
-
-        $('#form_nuevo_seguimiento_simple').hide();
-        $('#nuevo_seguimiento_simple').val('');
-        $('.btn-agregar-seguimiento-simple').show();
-        $('#seguimientos_container_simple').html('<div class="alert alert-info">Cargando seguimientos...</div>');
-
-        $('#seguimiento_ticket_id').val(ticketId);
-
-        $('#seguimiento_employee_name').text(ticketData.employee_name);
-        $('#seguimiento_description').text(ticketData.description);
-        $('#seguimiento_building').text(ticketData.building);
-        $('#seguimiento_department').text(ticketData.department);
-        $('#seguimiento_created_at').text(ticketData.created_at);
-        $('#seguimiento_assigned_to').text(ticketData.support_name);
-
-        $.ajax({
+    function cargarDatosCompletosSolicitud(ticketId) {
+        return $.ajax({
             url: `/admin/solicitudes/${ticketId}/edit`,
             type: 'GET',
             success: function(response) {
                 if (response.success) {
                     const ticket = response.ticket;
-
+                    
+                    $('#seguimiento_employee_name').text(ticket.employee?.full_name || ticket.employee_name || '—');
+                    $('#seguimiento_description').text(ticket.description || '—');
+                    $('#seguimiento_building').text(ticket.building?.description || ticket.building_name || '—');
+                    $('#seguimiento_department').text(ticket.department?.description || ticket.department_name || '—');
+                    $('#seguimiento_created_at').text(formatearFecha(ticket.created_at));
+                    
                     if (ticket.support_closing) {
                         $('#seguimiento_support_closing').text(formatearFecha(ticket.support_closing));
                     } else {
                         $('#seguimiento_support_closing').text('No liberado aún');
                     }
 
-                    $('#seguimiento_status').text(ticket.service_status?.description || '—');
-                    $('#seguimiento_activity').text(ticket.activity_description || 'No especificada');
+                    $('#seguimiento_status').text(ticket.service_status?.description || ticket.status_name || '—');
+                    
+                    if (ticket.support_personal) {
+                        $('#seguimiento_assigned_to').text(`${ticket.support_personal.name} ${ticket.support_personal.lastnames}`);
+                    } else if (ticket.support_personal_name) {
+                        $('#seguimiento_assigned_to').text(ticket.support_personal_name);
+                    } else {
+                        $('#seguimiento_assigned_to').text('No asignado');
+                    }
 
-                    cargarSeguimientosSimples(ticketId);
+                    $('#seguimiento_activity').text(ticket.activity_description || 'No especificada');
                 }
-            },
-            error: function() {
-                $('#seguimientos_container_simple').html('<div class="alert alert-danger">Error al cargar información completa del ticket.</div>');
             }
         });
+    }
 
+    // ================= ABRIR MODAL =================
+    $(document).on('click', '.btn-seguimiento', function() {
+        const ticketId = $(this).data('ticket-id');
+        seguimientoEditandoId = null;
+
+        $('#form_nuevo_seguimiento_simple').hide();
+        $('#nuevo_seguimiento_simple').val('');
+        $('.btn-agregar-seguimiento-simple').show();
+        
+        $('#seguimiento_employee_name').text('Cargando...');
+        $('#seguimiento_description').text('Cargando...');
+        $('#seguimiento_building').text('Cargando...');
+        $('#seguimiento_department').text('Cargando...');
+        $('#seguimiento_created_at').text('Cargando...');
+        $('#seguimiento_support_closing').text('Cargando...');
+        $('#seguimiento_status').text('Cargando...');
+        $('#seguimiento_assigned_to').text('Cargando...');
+        $('#seguimiento_activity').text('Cargando...');
+        
+        $('#seguimientos_container_simple').html('<div class="alert alert-info">Cargando seguimientos...</div>');
+
+        $('#seguimiento_ticket_id').val(ticketId);
+
+        cargarDatosCompletosSolicitud(ticketId)
+            .then(function() {
+                return cargarSeguimientosSimples(ticketId);
+            })
+            .catch(function() {
+                $('#seguimientos_container_simple').html('<div class="alert alert-danger">Error al cargar información completa del ticket.</div>');
+            });
         $('#seguimientoModal').modal('show');
     });
 
@@ -178,8 +191,7 @@ $(document).ready(function() {
                     description: seguimiento
                 },
                 success: function() {
-                    const card = $(`.seguimiento-item-simple[data-id="${seguimientoEditandoId}"]`);
-                    card.find('p').text(seguimiento);
+                    cargarSeguimientosSimples(ticketId);
 
                     seguimientoEditandoId = null;
                     $('#form_nuevo_seguimiento_simple').slideUp();
@@ -217,6 +229,10 @@ $(document).ready(function() {
                     mostrarNotificacionSimple('Seguimiento guardado exitosamente', 'success');
                 }
             },
+            error: function(xhr) {
+                const errorMessage = xhr.responseJSON?.message || 'Error al guardar el seguimiento';
+                mostrarNotificacionSimple(errorMessage, 'danger');
+            },
             complete: function() {
                 $btnGuardar.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i> Guardar');
             }
@@ -224,11 +240,17 @@ $(document).ready(function() {
     });
 
     function mostrarNotificacionSimple(mensaje, tipo = 'success') {
+        $('.alert.position-fixed').remove();
+        
+        const icono = tipo === 'success' ? 'check-circle' : 'exclamation-circle';
+        const alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+        
         const $notificacion = $(`
-            <div class="alert alert-${tipo} alert-dismissible fade show position-fixed" 
-                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <i class="bi bi-${icono} me-2"></i>
                 ${mensaje}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         `);
 
