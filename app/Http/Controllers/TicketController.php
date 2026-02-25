@@ -197,10 +197,13 @@ class TicketController extends Controller
         try {
             $validated['service_status_id'] = 1;
 
-            Ticket::create($validated);
+            $ticket = Ticket::create($validated);
+
+            $ticket->load(['employee', 'building', 'department']);
 
             return redirect()->route('home')
-                ->with('success', '¡Ticket creado exitosamente!');
+                ->with('success', '¡Ticket creado exitosamente!')
+                ->with('ticket_info', $ticket);
         } catch (\Exception $e) {
             return back()->withInput()
                 ->with('error', 'Error al crear el ticket: ' . $e->getMessage());

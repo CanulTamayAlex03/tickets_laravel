@@ -24,7 +24,21 @@
 
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show">
-                            {{ session('success') }}
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <strong>{{ session('success') }}</strong>
+                            </div>
+
+                            @if(session('ticket_info'))
+                                @php $ticket = session('ticket_info'); @endphp
+                                <div class="ticket-details mt-2 p-2 rounded">
+                                    <p class="mb-1"><strong>Folio del Ticket:</strong> #{{ $ticket->id }}</p>
+                                    <p class="mb-1"><strong>Fecha de creación:</strong> {{ $ticket->created_at->format('d/m/Y H:i') }}</p>
+                                    <p class="mb-1"><strong>Empleado:</strong> {{ $ticket->employee->full_name ?? 'N/A' }}</p>
+                                    <p class="mb-0"><strong>Descripción:</strong> {{ Str::limit($ticket->description, 100) }}</p>
+                                </div>
+                            @endif
+
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
@@ -170,6 +184,23 @@ $(document).ready(function() {
             window.open('http://mail.yucatan.gob.mx/', '_blank');
         });
     });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert-dismissible');
+    
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            alert.classList.add('fade-out');
+            
+            setTimeout(function() {
+                const closeButton = alert.querySelector('.btn-close');
+                if (closeButton) {
+                    closeButton.click();
+                }
+            }, 500);
+        }, 7000);
+    });
+});
 </script>
 
 <style>
@@ -213,5 +244,10 @@ $(document).ready(function() {
     .select2-container--default .select2-selection--single .select2-selection__arrow {
         height: calc(1.5em + .5rem + 2px) !important;
     }
+
+    .fade-out {
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0;
+}
 </style>
 @endsection
