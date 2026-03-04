@@ -7,11 +7,23 @@
         <div class="card-header bg-dark text-white py-2 text-center">
             <h5 class="mb-0">Administración de Solicitudes</h5>
         </div>
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <strong>{{ session('success') }}</strong>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
 
         <div class="card-body p-3 tabla-container">
             <button class="btn btn-sm btn-primary"
                 data-bs-toggle="modal" data-bs-target="#filterModal">
                 <i class="bi bi-search me-1"></i> Buscar Solicitudes
+            </button>
+            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#createSolicitudModal">
+                <i class="bi bi-plus-circle me-1"></i> Nueva Solicitud
             </button>
             <div class="d-flex justify-content-between mb-3 mt-4">
     <div class="btn-group" role="group">
@@ -255,6 +267,7 @@
 @include('administrador.admin.modals.admin_solicitudes-modals.ver_modal')
 @include('administrador.admin.modals.admin_solicitudes-modals.eliminar_modal')
 @include('administrador.admin.modals.admin_solicitudes-modals.reasignar_modal')
+@include('administrador.admin.modals.create_solicitud')
 @endsection
 
 @section('scripts')

@@ -151,6 +151,18 @@
             font-size: 0.7rem;
             margin-left: 5px;
         }
+        .sidebar.collapsed {
+            width: 0;
+            overflow: hidden;
+            padding: 0;
+        }
+        .main-content.expanded {
+            margin-left: 0;
+            width: 100%;
+        }
+        .sidebar, .main-content {
+            transition: all 0.3s ease;
+        }
     </style>
     
     @stack('scripts')
@@ -495,6 +507,28 @@ $(document).ready(function() {
         });
 
     }, 2000);
+});
+
+$(document).ready(function() {
+    $('#sidebarToggle').click(function(e) {
+        e.preventDefault();
+        
+        $('#sidebar').toggleClass('collapsed');
+        
+        $('#mainContent').toggleClass('expanded');
+        
+        $('.top-navbar').toggleClass('navbar-expanded');
+        
+        const isCollapsed = $('#sidebar').hasClass('collapsed');
+        localStorage.setItem('sidebarCollapsed', isCollapsed);
+    });
+
+    const sidebarState = localStorage.getItem('sidebarCollapsed');
+    if (sidebarState === 'true') {
+        $('#sidebar').addClass('collapsed');
+        $('#mainContent').addClass('expanded');
+        $('.top-navbar').addClass('navbar-expanded');
+    }
 });
 </script>
     @yield('scripts')

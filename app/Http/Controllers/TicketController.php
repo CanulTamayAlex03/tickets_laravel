@@ -201,6 +201,11 @@ class TicketController extends Controller
 
             $ticket->load(['employee', 'building', 'department']);
 
+            if ($request->input('origin') === 'admin') {
+                return redirect()->route('admin.admin_solicitudes')
+                    ->with('success', 'Ticket creado exitosamente');
+            }
+
             return redirect()->route('home')
                 ->with('success', '¡Ticket creado exitosamente!')
                 ->with('ticket_info', $ticket);

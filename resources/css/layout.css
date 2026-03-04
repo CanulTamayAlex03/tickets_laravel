@@ -2,18 +2,23 @@ body {
     background-color: #afadadff; 
 }
 
-/* Sidebar */
 .sidebar {
     width: 280px;
     background-color: #343a40;
     position: fixed;
     height: 100vh;
     overflow-y: auto;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
     z-index: 1000;
+    left: 0;
 }
 
-/* Logo/Menú superior */
+.sidebar.collapsed {
+    width: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
 .sidebar-header {
     height: auto;
     display: flex;
@@ -27,57 +32,67 @@ body {
     max-width: 100%;
 }
 
-/* Contenido principal */
 .main-content {
     margin-left: 280px;
     padding: 20px;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
+    min-height: 100vh;
 }
 
-/* Navbar superior */
+.main-content.expanded {
+    margin-left: 0;
+}
+
 .top-navbar {
     height: 80px;
     background-color: #210240;
     box-shadow: 0 2px 4px rgba(52, 51, 51, 0.1);
     position: fixed;
     top: 0;
-    right: 0;
     left: 280px;
+    right: 0;
     z-index: 1030;
-    transition: all 0.3s;
+    transition: left 0.3s ease;
 }
 
-/* Cuando el sidebar está oculto */
-.sidebar-collapsed {
-    margin-left: -280px;
+.top-navbar.navbar-expanded {
+    left: 0 !important;
 }
 
-.content-collapsed {
-    margin-left: 0;
-}
-
-.navbar-collapsed {
-    left: 0;
-}
-
-/* Ajustes para móviles */
 @media (max-width: 768px) {
     .sidebar {
         margin-left: -280px;
+        width: 280px;
     }
-    .main-content {
-        margin-left: 0;
-        padding-top: 76px;
+    
+    .sidebar.collapsed {
+        margin-left: -280px;
+        width: 280px;
+        overflow: hidden;
     }
-    .top-navbar {
-        left: 0;
-    }
+    
     .sidebar.active {
         margin-left: 0;
     }
+    
+    .main-content {
+        margin-left: 0;
+        padding-top: 96px;
+    }
+    
+    .main-content.expanded {
+        margin-left: 0;
+    }
+    
+    .top-navbar {
+        left: 0;
+    }
+    
+    .top-navbar.navbar-expanded {
+        left: 0;
+    }
 }
 
-/* Botón de validación de internet */
 .internet-validation-btn {
     position: fixed;
     bottom: 70px;
@@ -110,7 +125,6 @@ body {
     transform: scale(1.05);
 }
 
-/* Botón de correo */
 .email-btn {
     position: fixed;
     bottom: 20px; 
@@ -143,7 +157,6 @@ body {
     transform: scale(1.05);
 }
 
-
 .validation-options {
     position: absolute;
     bottom: 70px;
@@ -172,8 +185,6 @@ body {
     display: block;
 }
 
-
-/* Estilo para el item activo en el sidebar */
 .sidebar .nav-item .nav-link.active {
     background-color: rgba(255, 255, 255, 0.1);
     border-left: 3px solid #fff;
@@ -182,4 +193,10 @@ body {
 
 .sidebar .nav-item .nav-link.active i {
     color: #fff;
+}
+
+.sidebar-collapsed,
+.content-collapsed,
+.navbar-collapsed {
+    display: none;
 }
