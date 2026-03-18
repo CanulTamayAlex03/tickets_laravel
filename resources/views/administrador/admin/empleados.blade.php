@@ -324,7 +324,6 @@ $(document).ready(function() {
         });
     });
 
-    // Editar empleado
     $(document).on('click', '.btn-edit', function() {
         const id = $(this).data('id');
         const name = $(this).data('name');
@@ -339,7 +338,6 @@ $(document).ready(function() {
         $('#edit_lastname2').val(lastname2);
         $('#edit_no_nomina').val(no_nomina);
         
-        // Configurar el checkbox
         if (active == '1') {
             $('#edit_active').prop('checked', true);
             $('#statusHelp').html('<i class="bi bi-info-circle me-1"></i>Desmarca para inactivar el empleado');
@@ -348,7 +346,6 @@ $(document).ready(function() {
             $('#statusHelp').html('<i class="bi bi-info-circle me-1"></i>Marca para activar el empleado');
         }
         
-        // Verificar si el empleado tiene tickets asociados
         $.ajax({
             url: '{{ url("admin/empleados") }}/' + id + '/tickets-count',
             type: 'GET',
@@ -427,13 +424,11 @@ $(document).ready(function() {
         });
     });
 
-    // Limpiar errores al cerrar modales
     $('.modal').on('hidden.bs.modal', function() {
         $(this).find('.is-invalid').removeClass('is-invalid');
         $(this).find('.invalid-feedback').hide();
     });
 
-    // Función para mostrar toast
     function showToast(type, message) {
         const toast = $(`
             <div class="alert alert-${type} alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 99999;">

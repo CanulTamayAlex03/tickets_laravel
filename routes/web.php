@@ -13,6 +13,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\ExtensionController;
 
 Route::get('/', function () {
     $buildings = App\Models\Building::orderBy('description')->get();
@@ -63,14 +64,14 @@ Route::prefix('admin')->middleware(['auth', 'permission:acceso administrador'])-
     Route::post('/solicitudes/{id}/agregar-seguimiento', [TicketController::class, 'agregarSeguimiento'])
         ->name('admin.solicitudes.agregar-seguimiento')
         ->middleware('permission:editar tickets');
-        
+
     Route::put('/solicitudes/{ticket}/seguimiento/{seguimiento}/editar', [TicketController::class, 'editarSeguimiento'])
         ->name('admin.solicitudes.seguimiento.editar')
         ->middleware('permission:editar tickets');
 
     Route::put('/solicitudes/{id}/reasignar', [TicketController::class, 'reasignar'])
-    ->name('admin.solicitudes.reasignar')
-    ->middleware('permission:editar tickets');
+        ->name('admin.solicitudes.reasignar')
+        ->middleware('permission:editar tickets');
 
     // Ruta para verificar nuevas solicitudes
     Route::get('/admin/tickets/check-new', [TicketController::class, 'checkNewTickets'])
@@ -170,6 +171,18 @@ Route::prefix('admin')->middleware(['auth', 'permission:acceso administrador'])-
         Route::put('/{id}', [EmployeeController::class, 'update'])
             ->name('admin.empleados.update')->middleware('permission:editar empleados');
     });
+    // Extensiones
+    Route::prefix('extensiones')->group(function () {
+        Route::get('/', [ExtensionController::class, 'index'])
+            ->name('admin.extensiones');
+
+        Route::post('/importar', [ExtensionController::class, 'importar'])
+            ->name('admin.extensiones.importar');
+
+        Route::patch('/{id}/toggle-active', [ExtensionController::class, 'toggleActive'])
+            ->name('admin.extensiones.toggle-active');
+        
+    });
 
     // ================== RUTAS EXCLUSIVAS PARA SUPERADMIN ==================
     Route::prefix('gestion-permisos')->middleware(['role:superadmin'])->group(function () {
@@ -183,3 +196,5 @@ Route::prefix('admin')->middleware(['auth', 'permission:acceso administrador'])-
         Route::get('/rol/{role}/edit-ajax', [PermissionManagerController::class, 'editAjax'])->name('admin.permisos.edit-ajax');
     });
 });
+
+Route::get('/activas', [ExtensionController::class, 'getActive'])->name('admin.extensiones.activas');

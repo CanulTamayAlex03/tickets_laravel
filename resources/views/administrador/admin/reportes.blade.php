@@ -5,8 +5,10 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
-                <div class="card-header bg-dark text-white">
-                    <h3 class="mb-0"><i class="fas fa-file-excel me-2"></i>Reportes - Descargar Excel</h3>
+                <div class="card-header bg-dark text-white text-center">
+                <h5 class="mb-0">
+                    Cátalogo de Reportes - Descarga
+                </h5>
                 </div>
                 
                 <div class="card-body">

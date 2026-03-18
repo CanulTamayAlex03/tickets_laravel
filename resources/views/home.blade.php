@@ -120,6 +120,8 @@
         </div>
     </div>
 </div>
+{{-- Incluir modal de extensiones --}}
+@include('administrador.admin.modals.extensiones_view')
 
 <!-- Botón de validación de internet -->
 <div class="internet-validation-btn" id="internetValidationBtn">
@@ -131,6 +133,12 @@
 <div class="email-btn" id="emailBtn">
     <i class="bi bi-envelope"></i>
     <span>Correo Institucional</span>
+</div>
+
+<!-- Botón de extensiones teléfonicas -->
+<div class="ext-btn" id="extBtn">
+    <i class="bi bi-telephone"></i>
+    <span>Direc. de Extensiones</span>
 </div>
 
 
@@ -199,6 +207,90 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, 500);
         }, 7000);
+    });
+});
+
+$(document).ready(function() {
+    let allExtensions = [];
+    
+    $('#extBtn').click(function() {
+        $('#extensionsModal').modal('show');
+        
+        if (allExtensions.length === 0) {
+            loadExtensions();
+        }
+    });
+    
+    function loadExtensions() {
+        $.ajax({
+            url: '{{ route("admin.extensiones.activas") }}',
+            type: 'GET',
+            success: function(response) {
+                allExtensions = response;
+                displayExtensions(allExtensions);
+            },
+            error: function(xhr) {
+                $('#extensionsTableBody').html(`
+                    <tr>
+                        <td colspan="2" class="text-center text-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Error al cargar las extensiones
+                        </td>
+                    </tr>
+                `);
+                console.error('Error:', xhr);
+            }
+        });
+    }
+    
+    function displayExtensions(extensions) {
+        if (extensions.length === 0) {
+            $('#extensionsTableBody').html(`
+                <tr>
+                    <td colspan="2" class="text-center text-muted">
+                        <i class="bi bi-inbox me-2"></i>
+                        No hay extensiones registradas
+                    </td>
+                </tr>
+            `);
+            return;
+        }
+        
+        let html = '';
+        extensions.forEach(ext => {
+            html += `
+                <tr>
+                    <td>${ext.nombre_extension}</td>
+                    <td>
+                        <span class="badge bg-info">${ext.extension}</span>
+                    </td>
+                </tr>
+            `;
+        });
+        $('#extensionsTableBody').html(html);
+    }
+    
+    $('#searchExtension').on('keyup', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        
+        if (searchTerm === '') {
+            displayExtensions(allExtensions);
+            return;
+        }
+        
+        const filtered = allExtensions.filter(ext => 
+            ext.nombre_extension.toLowerCase().includes(searchTerm) || 
+            ext.extension.toString().includes(searchTerm)
+        );
+        
+        displayExtensions(filtered);
+    });
+    
+    $('#extensionsModal').on('hidden.bs.modal', function() {
+        $('#searchExtension').val('');
+        if (allExtensions.length > 0) {
+            displayExtensions(allExtensions);
+        }
     });
 });
 </script>

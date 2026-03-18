@@ -285,6 +285,13 @@
                     </a>
                 </li>
                 @endcan
+                @can('ver extensiones')
+                <li class="nav-item">
+                    <a class="nav-link text-white @if(Request::is('admin/extensiones')) active @endif" href="{{ route('admin.extensiones') }}">
+                        <i class="bi bi-telephone me-2"></i> Extensiones DIF
+                    </a>
+                </li>
+                @endcan
 
                 @role('superadmin')
                 <li class="nav-item">
