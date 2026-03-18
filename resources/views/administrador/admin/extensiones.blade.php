@@ -94,7 +94,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">
+                                        <span class="badge bg-primary">
                                             {{ $ext->extension }}
                                         </span>
                                     </td>

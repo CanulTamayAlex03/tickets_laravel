@@ -262,7 +262,7 @@ $(document).ready(function() {
                 <tr>
                     <td>${ext.nombre_extension}</td>
                     <td>
-                        <span class="badge bg-info">${ext.extension}</span>
+                        <span class="badge bg-primary">${ext.extension}</span>
                     </td>
                 </tr>
             `;
