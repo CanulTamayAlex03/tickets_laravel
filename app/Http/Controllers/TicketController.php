@@ -196,7 +196,7 @@ class TicketController extends Controller
 
         try {
             $validated['service_status_id'] = 1;
-
+            $validated['description'] = str_replace(["\r\n", "\r", "\n"], ' ', $validated['description']);
             $ticket = Ticket::create($validated);
 
             $ticket->load(['employee', 'building', 'department']);
